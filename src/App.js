@@ -210,10 +210,60 @@ function App() {
 
   if (screen === 'lobby') return (
     <div className="container">
-      <h2>🏠 Лобі</h2>
-      {Object.values(lobbyPlayers).map(p => <div key={p.name} className="role-btn">✅ {p.name}</div>)}
-      {isAdmin && <button className="start-btn" onClick={() => update(ref(db, 'current_game'), { status: 'active' })}>Почати гру</button>}
-      <button className="finish-btn" onClick={() => setScreen('select-role')}>Вийти (Назад)</button>
+      <h2>🏠 Лобі гри</h2>
+      <p style={{fontSize: '14px', color: '#636e72', marginBottom: '20px'}}>
+        {isAdmin ? "Ви можете видалити зайвих гравців перед стартом" : "Чекайте, поки адмін почне гру..."}
+      </p>
+      
+      <div style={{display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px'}}>
+        {Object.values(lobbyPlayers).map(p => (
+          <div key={p.name} className="role-btn" style={{
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            background: '#f1f2f6',
+            cursor: 'default'
+          }}>
+            <span>✅ {p.name}</span>
+            
+            {/* Хрестик для видалення — бачить тільки адмін */}
+            {isAdmin && (
+              <button 
+                onClick={() => remove(ref(db, `current_game/players/${p.name}`))}
+                style={{
+                  background: '#ff7675',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '25px',
+                  height: '25px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  fontWeight: 'bold'
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {isAdmin && (
+        <button 
+          className="start-btn" 
+          onClick={() => update(ref(db, 'current_game'), { status: 'active' })}
+          disabled={Object.keys(lobbyPlayers).length === 0}
+        >
+          🚀 Почати гру ({Object.keys(lobbyPlayers).length})
+        </button>
+      )}
+      
+      <button className="finish-btn" onClick={() => setScreen('select-role')} style={{marginTop: '10px'}}>
+        ⬅️ Назад до вибору
+      </button>
     </div>
   );
 
