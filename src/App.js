@@ -52,6 +52,13 @@ function App() {
     }
   };
 
+  const deleteFromList = (nameToDelete) => {
+    if (prompt("Введіть пароль для видалення гравця:") === "1234") {
+      const newList = playerList.filter(n => n !== nameToDelete);
+      set(ref(db, 'player_list'), newList);
+    }
+  };
+
   const calculateStats = () => {
     const statsMap = {};
     playerList.forEach(name => { statsMap[name] = { name, matches: 0, wins: 0 }; });
@@ -146,7 +153,10 @@ function App() {
       {isAdmin && <button className="start-btn" onClick={addNewPlayer} style={{marginBottom: '15px', background: '#00cec9', fontSize: '14px'}}>➕ Додати гравця</button>}
       <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
         {playerList.filter(n => n !== "Єгор").map(n => (
-          <button key={n} className="role-btn" onClick={() => { update(ref(db, `current_game/players/${n}`), { name: n, levels: { 0: 0 } }); setScreen('lobby'); }}>{n}</button>
+          <div key={n} style={{position: 'relative'}}>
+            <button className="role-btn" onClick={() => { update(ref(db, `current_game/players/${n}`), { name: n, levels: { 0: 0 } }); setScreen('lobby'); }} style={{width: '100%'}}>{n}</button>
+            {isAdmin && <button onClick={(e) => { e.stopPropagation(); deleteFromList(n); }} style={{position: 'absolute', top: '-5px', right: '-5px', background: '#ff7675', color: 'white', border: 'none', borderRadius: '50%', width: '22px', height: '22px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', zIndex: 10}}>✕</button>}
+          </div>
         ))}
       </div>
       <button className="finish-btn" onClick={() => setScreen('main')} style={{marginTop: '20px'}}>Назад</button>
@@ -196,14 +206,14 @@ function App() {
         <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '15px'}}><h2>🎯 Ціль: {targetScore}</h2>{isAdmin && <span style={{fontSize: '12px', background: '#ffeaa7', padding: '2px 8px', borderRadius: '10px'}}>Admin</span>}</div>
         <div className="table-wrapper" style={{overflowX: 'auto', background: 'white', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)'}}>
           <table className="game-table" style={{width: '100%', borderCollapse: 'collapse', minWidth: '400px'}}>
-            <thead><tr style={{background: '#2d3436', color: 'white'}}><th style={{padding: '12px', textAlign: 'left', position: 'sticky', left: 0, background: '#2d3436', zIndex: 10}}>Ім'я</th><th style={{padding: '12px'}}>LVL</th>{[...Array(maxR + 1)].map((_, i) => <th key={i} style={{padding: '12px'}}>К{i+1}</th>)}</tr></thead>
+            <thead><tr style={{background: '#2d3436', color: 'white'}}><th style={{padding: '12px', textAlign: 'left', position: 'sticky', left: 0, background: '#2d3436', zIndex: 10, fontSize: '18px'}}>Ім'я</th><th style={{padding: '12px', fontSize: '18px'}}>LVL</th>{[...Array(maxR + 1)].map((_, i) => <th key={i} style={{padding: '12px'}}>К{i+1}</th>)}</tr></thead>
             <tbody>
               {players.map((p, idx) => {
                 const total = Object.values(p.levels || {}).reduce((a, b) => a + b, 1);
                 return (
                   <tr key={p.name} style={{borderBottom: '1px solid #dfe6e9', background: idx % 2 === 0 ? '#fff' : '#f9f9f9'}}>
-                    <td style={{padding: '12px', fontWeight: 'bold', fontSize: '18px', position: 'sticky', left: 0, background: idx % 2 === 0 ? '#fff' : '#f9f9f9', boxShadow: '2px 0 5px rgba(0,0,0,0.05)', zIndex: 5}}>{p.name}</td>
-                    <td style={{padding: '12px', textAlign: 'center', fontSize: '36px', fontWeight: '900', color: '#2d3436', background: total >= targetScore ? '#ff7675' : (total >= targetScore - 1 ? '#ffeaa7' : 'transparent')}}>{total}</td>
+                    <td style={{padding: '12px', fontWeight: 'bold', fontSize: '20px', position: 'sticky', left: 0, background: idx % 2 === 0 ? '#fff' : '#f9f9f9', boxShadow: '2px 0 5px rgba(0,0,0,0.05)', zIndex: 5}}>{p.name}</td>
+                    <td style={{padding: '12px', textAlign: 'center', fontSize: '42px', fontWeight: '900', color: '#2d3436', background: total >= targetScore ? '#ff7675' : (total >= targetScore - 1 ? '#ffeaa7' : 'transparent')}}>{total}</td>
                     {[...Array(maxR + 1)].map((_, i) => {
                       const val = parseInt(p.levels?.[i] || 0);
                       return (
