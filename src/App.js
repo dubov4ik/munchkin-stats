@@ -125,15 +125,52 @@ function App() {
       </div>
 
       <div className="stats-card" style={{marginTop: '20px'}}>
-        <h3>📜 Історія</h3>
+        <h3 style={{textAlign: 'left', marginLeft: '10px'}}>📜 Історія</h3>
         <div className="history-list">
           {[...history].reverse().slice(0, 10).map((g) => (
-            <div key={g.id} className="history-item" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', borderBottom: '1px solid #eee'}}>
-              <div style={{flex: 1, paddingRight: '10px'}}>
-                {g.isArchive ? <strong>{g.date}</strong> : <span>{g.date} — <strong>{g.winner}</strong> 🏆</span>}
-                <br/><small style={{color: '#636e72', fontSize: '11px'}}>{g.participants}</small>
+            <div key={g.id} style={{
+              display: 'flex !important',
+              flexDirection: 'row !important',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '15px',
+              margin: '10px 0',
+              background: '#fff',
+              borderRadius: '12px',
+              border: '1px solid #eee',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+              textAlign: 'left'
+            }}>
+              {/* Блок з текстом */}
+              <div style={{flex: '1', textAlign: 'left'}}>
+                {g.isArchive ? (
+                  <strong style={{color: '#27ae60', fontSize: '16px'}}>{g.date}</strong>
+                ) : (
+                  <span style={{fontSize: '16px'}}>{g.date} — <strong style={{color: '#27ae60'}}>{g.winner}</strong> 🏆</span>
+                )}
+                <div style={{color: '#636e72', fontSize: '12px', marginTop: '4px', lineHeight: '1.2'}}>
+                  {g.participants}
+                </div>
               </div>
-              <button className="del-btn" onClick={() => { if(prompt("Пароль:")==="1234") remove(ref(db, `games_history/${g.id}`)) }} style={{background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', opacity: 0.6}}>🗑️</button>
+              
+              {/* Кнопка видалення чітко справа */}
+              <button 
+                onClick={() => { if(prompt("Пароль:")==="1234") remove(ref(db, `games_history/${g.id}`)) }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '22px',
+                  padding: '10px',
+                  marginLeft: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: '44px'
+                }}
+              >
+                🗑️
+              </button>
             </div>
           ))}
         </div>
