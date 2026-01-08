@@ -275,11 +275,32 @@ function App() {
       <div className="container" style={{maxWidth: '100%', padding: '10px'}}>
         {winners.length > 0 && (
           <div className="winner-overlay">
-            <div className="winner-card">
-              <h2>🎉 ПЕРЕМОГА! 🎉</h2>
-              <p><strong>{winners.join(', ')}</strong></p>
-              <button className="start-btn" onClick={() => finalReset(winners)}>Зберегти 🏆</button>
-              <button className="finish-btn" onClick={() => setWinners([])} style={{marginTop: '10px'}}>Назад</button>
+            <div className="winner-card" style={{textAlign: 'center', padding: '30px'}}>
+              <h2 style={{fontSize: '40px', marginBottom: '10px'}}>🎉 ПЕРЕМОГА! 🎉</h2>
+              <div style={{fontSize: '24px', fontWeight: 'bold', color: '#2d3436', marginBottom: '20px'}}>
+                {winners.join(', ')}
+              </div>
+              
+              {isAdmin ? (
+                // Тільки адмін бачить кнопку збереження в базу
+                <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                  <p style={{color: '#636e72', fontSize: '14px'}}>Ви як адмін можете завершити гру для всіх:</p>
+                  <button className="start-btn" onClick={() => finalReset(winners)}>
+                    Зберегти в історію та вийти 🏆
+                  </button>
+                  <button className="finish-btn" onClick={() => setWinners([])} style={{background: '#b2bec3'}}>
+                    Продовжити грати (назад)
+                  </button>
+                </div>
+              ) : (
+                // Звичайні гравці просто закривають вікно
+                <div>
+                  <p style={{color: '#636e72', fontSize: '14px', marginBottom: '15px'}}>Чекайте, поки Єгор збереже результат...</p>
+                  <button className="start-btn" onClick={() => setWinners([])} style={{background: '#00cec9'}}>
+                    Зрозуміло 👍
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
