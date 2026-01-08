@@ -110,35 +110,23 @@ function App() {
         </table>
       </div>
 
-      {/* БЛОК ІСТОРІЇ - БЕЗ КЛАСІВ */}
       <div style={{marginTop: '30px'}}>
         <h3 style={{textAlign: 'left', marginLeft: '10px'}}>📜 Історія ігор</h3>
         <div style={{display: 'block'}}>
           {[...history].reverse().slice(0, 10).map((g) => (
             <div key={g.id} style={{
-              display: 'flex', 
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: 'white',
-              padding: '12px 15px',
-              margin: '8px 0',
-              borderRadius: '12px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-              borderLeft: '4px solid #2ecc71'
+              display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+              background: 'white', padding: '12px 15px', margin: '8px 0', borderRadius: '12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.06)', borderLeft: '4px solid #2ecc71'
             }}>
               <div style={{textAlign: 'left'}}>
                 <div style={{fontSize: '14px', fontWeight: 'bold', margin: 0}}>
                    {g.isArchive ? g.date : `${g.date} — ${g.winner} 🏆`}
                 </div>
-                <div style={{fontSize: '11px', color: '#95a5a6', marginTop: '2px'}}>
-                  {g.participants}
-                </div>
+                <div style={{fontSize: '11px', color: '#95a5a6', marginTop: '2px'}}>{g.participants}</div>
               </div>
               <div onClick={() => { if(prompt("Пароль:")==="1234") remove(ref(db, `games_history/${g.id}`)) }} 
-                   style={{cursor: 'pointer', padding: '10px', fontSize: '18px', opacity: 0.4}}>
-                🗑️
-              </div>
+                   style={{cursor: 'pointer', padding: '10px', fontSize: '18px', opacity: 0.4}}>🗑️</div>
             </div>
           ))}
         </div>
@@ -216,9 +204,18 @@ function App() {
                   <tr key={p.name} style={{borderBottom: '1px solid #dfe6e9', background: idx % 2 === 0 ? '#fff' : '#f9f9f9'}}>
                     <td style={{padding: '12px', fontWeight: 'bold', position: 'sticky', left: 0, background: idx % 2 === 0 ? '#fff' : '#f9f9f9', boxShadow: '2px 0 5px rgba(0,0,0,0.05)', zIndex: 5}}>{p.name}</td>
                     <td style={{padding: '12px', textAlign: 'center', fontSize: '18px', fontWeight: '800', background: total >= targetScore ? '#ff7675' : (total >= targetScore - 1 ? '#ffeaa7' : 'transparent')}}>{total}</td>
-                    {[...Array(maxR + 1)].map((_, i) => (
-                      <td key={i} style={{padding: '5px', textAlign: 'center'}}><input type="number" disabled={!isAdmin} value={p.levels?.[i] || 0} onChange={e => update(ref(db, `current_game/players/${p.name}/levels`), {[i]: parseInt(e.target.value) || 0})} className="level-input" style={{width: '40px', textAlign: 'center', borderRadius: '6px', fontSize: '16px'}} /></td>
-                    ))}
+                    {[...Array(maxR + 1)].map((_, i) => {
+                      const val = parseInt(p.levels?.[i] || 0);
+                      return (
+                        <td key={i} style={{padding: '4px', textAlign: 'center'}}>
+                          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: '#f8f9fa', borderRadius: '8px', padding: '4px'}}>
+                            {isAdmin && <button onClick={() => update(ref(db, `current_game/players/${p.name}/levels`), {[i]: val + 1})} style={{background: '#55efc4', border: 'none', borderRadius: '4px', width: '32px', height: '28px', fontSize: '18px', fontWeight: 'bold'}}>+</button>}
+                            <span style={{fontSize: '16px', fontWeight: '700', minWidth: '20px'}}>{val}</span>
+                            {isAdmin && <button onClick={() => update(ref(db, `current_game/players/${p.name}/levels`), {[i]: Math.max(0, val - 1)})} style={{background: '#fab1a0', border: 'none', borderRadius: '4px', width: '32px', height: '28px', fontSize: '18px', fontWeight: 'bold'}}>-</button>}
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               })}
