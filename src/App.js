@@ -99,10 +99,30 @@ function App() {
   if (screen === 'main') return (
     <div className="container">
       <h1>🏆 Munchkin Stats</h1>
-      <div className="podium-container">
-        <div className="podium-item"><div>🎮 МАТЧІ</div><div className="podium-name">{podium.matches.names}</div><div className="podium-value">{podium.matches.value}</div></div>
-        <div className="podium-item gold"><div>👑 ПЕРЕМОГИ</div><div className="podium-name">{podium.wins.names}</div><div className="podium-value">{podium.wins.value}</div></div>
-        <div className="podium-item"><div>📈 ВІНРЕЙТ</div><div className="podium-name">{podium.rate.names}</div><div className="podium-value">{podium.rate.value}</div></div>
+      
+      {/* НОВА ШАПКА ЛІДЕРІВ */}
+      <div className="podium-container" style={{
+        display: 'flex', justifyContent: 'space-around', alignItems: 'center', 
+        background: 'white', padding: '15px 10px', borderRadius: '20px', 
+        boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '25px'
+      }}>
+        <div style={{textAlign: 'center', flex: 1}}>
+          <div style={{fontSize: '12px', color: '#2d3436', fontWeight: 'bold'}}>🎮 МАТЧІ</div>
+          <div style={{fontSize: '16px', fontWeight: '900', color: '#0984e3', margin: '4px 0'}}>{podium.matches.names}</div>
+          <div style={{fontSize: '14px', color: '#ff7675', fontWeight: 'bold'}}>{podium.matches.value}</div>
+        </div>
+        
+        <div style={{textAlign: 'center', flex: 1.2, borderLeft: '1px solid #dfe6e9', borderRight: '1px solid #dfe6e9', padding: '0 5px'}}>
+          <div style={{fontSize: '12px', color: '#2d3436', fontWeight: 'bold'}}>👑 ПЕРЕМОГИ</div>
+          <div style={{fontSize: '18px', fontWeight: '900', color: '#2d3436', margin: '4px 0'}}>{podium.wins.names}</div>
+          <div style={{fontSize: '16px', color: '#ff7675', fontWeight: 'bold'}}>{podium.wins.value}</div>
+        </div>
+
+        <div style={{textAlign: 'center', flex: 1}}>
+          <div style={{fontSize: '12px', color: '#2d3436', fontWeight: 'bold'}}>📈 ВІНРЕЙТ</div>
+          <div style={{fontSize: '16px', fontWeight: '900', color: '#0984e3', margin: '4px 0'}}>{podium.rate.names}</div>
+          <div style={{fontSize: '14px', color: '#ff7675', fontWeight: 'bold'}}>{podium.rate.value}</div>
+        </div>
       </div>
 
       <div className="stats-card">
