@@ -23,24 +23,10 @@ function App() {
       }
     });
 
-    const checkArchive = (existingHistory) => {
-      const archiveEntry = existingHistory.find(g => g.id === 'archive_excel_data');
-      if (!archiveEntry || archiveEntry.matchesCount?.Єгор !== 49) {
-        set(ref(db, 'games_history/archive_excel_data'), {
-          date: "Архів (Excel)",
-          participants: "Єгор, Женя, Влад, Влада, Таня, Аня, Артем, Боря, Ліза, Наташа, Максим",
-          winner: [...Array(17).fill("Женя"), ...Array(8).fill("Влад"), ...Array(8).fill("Влада"), ...Array(4).fill("Таня"), ...Array(7).fill("Єгор"), ...Array(3).fill("Аня"), ...Array(5).fill("Артем"), ...Array(1).fill("Ліза")].join(', '),
-          isArchive: true,
-          matchesCount: { "Єгор": 49, "Таня": 46, "Женя": 46, "Влада": 40, "Влад": 34, "Аня": 25, "Артем": 10, "Боря": 6, "Наташа": 2, "Максим": 2, "Ліза": 1 }
-        });
-      }
-    };
-
     onValue(ref(db, 'games_history'), (snapshot) => {
       const data = snapshot.val();
       const entries = data ? Object.entries(data).map(([id, value]) => ({ id, ...value })) : [];
       setHistory(entries);
-      checkArchive(entries);
     });
 
     onValue(ref(db, 'current_game'), (snapshot) => {
@@ -124,58 +110,43 @@ function App() {
         </table>
       </div>
 
-      <div className="stats-card" style={{marginTop: '20px'}}>
-        <h3 style={{textAlign: 'left', marginLeft: '10px'}}>📜 Історія</h3>
-        <div className="history-list">
+      {/* ОНОВЛЕНИЙ БЛОК ІСТОРІЇ */}
+      <div style={{marginTop: '30px', padding: '0 5px'}}>
+        <h3 style={{textAlign: 'left', marginBottom: '15px'}}>📜 Історія ігор</h3>
+        <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
           {[...history].reverse().slice(0, 10).map((g) => (
             <div key={g.id} style={{
-              display: 'flex !important',
-              flexDirection: 'row !important',
-              justifyContent: 'space-between',
+              display: 'grid', 
+              gridTemplateColumns: '1fr 50px',
               alignItems: 'center',
+              background: 'white',
               padding: '15px',
-              margin: '10px 0',
-              background: '#fff',
               borderRadius: '12px',
-              border: '1px solid #eee',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              borderLeft: '5px solid #27ae60',
               textAlign: 'left'
             }}>
-              {/* Блок з текстом */}
-              <div style={{flex: '1', textAlign: 'left'}}>
-                {g.isArchive ? (
-                  <strong style={{color: '#27ae60', fontSize: '16px'}}>{g.date}</strong>
-                ) : (
-                  <span style={{fontSize: '16px'}}>{g.date} — <strong style={{color: '#27ae60'}}>{g.winner}</strong> 🏆</span>
-                )}
-                <div style={{color: '#636e72', fontSize: '12px', marginTop: '4px', lineHeight: '1.2'}}>
+              <div style={{display: 'block', textAlign: 'left'}}>
+                <div style={{fontSize: '15px', fontWeight: 'bold', marginBottom: '4px', textAlign: 'left'}}>
+                   {g.isArchive ? g.date : `${g.date} — ${g.winner} 🏆`}
+                </div>
+                <div style={{fontSize: '12px', color: '#636e72', lineHeight: '1.2', textAlign: 'left'}}>
                   {g.participants}
                 </div>
               </div>
-              
-              {/* Кнопка видалення чітко справа */}
               <button 
                 onClick={() => { if(prompt("Пароль:")==="1234") remove(ref(db, `games_history/${g.id}`)) }}
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '22px',
-                  padding: '10px',
-                  marginLeft: '10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minWidth: '44px'
+                  background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer',
+                  display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: 0.5
                 }}
-              >
-                🗑️
-              </button>
+              >🗑️</button>
             </div>
           ))}
         </div>
       </div>
-      <button className="start-btn" onClick={() => setScreen('select-role')} style={{marginTop: '20px'}}>Нова гра</button>
+
+      <button className="start-btn" onClick={() => setScreen('select-role')} style={{marginTop: '25px'}}>Нова гра</button>
     </div>
   );
 
