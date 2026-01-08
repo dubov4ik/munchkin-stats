@@ -99,7 +99,6 @@ function App() {
     <div className="container" style={{background: '#f8f9fd', minHeight: '100vh', padding: '20px 15px'}}>
       <h1 style={{fontSize: '26px', color: '#2d3436', marginBottom: '25px', fontWeight: '800'}}>🏆 Munchkin Stats</h1>
       
-      {/* СУЧАСНІ КАРТКИ ЛІДЕРІВ */}
       <div className="podium-container" style={{display: 'grid', gridTemplateColumns: '1fr 1.1fr 1fr', gap: '8px', marginBottom: '25px'}}>
         <div className="podium-item" style={{background: 'white', borderRadius: '16px', padding: '12px 5px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', border: '1px solid #eee'}}>
           <div style={{fontSize: '10px', color: '#636e72', fontWeight: 'bold'}}>🎮 МАТЧІ</div>
@@ -122,7 +121,10 @@ function App() {
         <h3 style={{textAlign: 'left', marginBottom: '12px', fontSize: '16px'}}>📊 Рейтинг</h3>
         <table style={{width: '100%', borderCollapse: 'collapse'}}>
           <thead><tr style={{color: '#b2bec3', fontSize: '11px', borderBottom: '1px solid #f1f2f6'}}>
-            <th style={{textAlign: 'left', padding: '10px'}}>ГРАВЕЦЬ</th><th>М</th><th>🏆</th><th>%</th>
+            <th style={{textAlign: 'left', padding: '10px'}}>ГРАВЕЦЬ</th>
+            <th style={{textAlign: 'center'}}>М</th>
+            <th style={{textAlign: 'center'}}>🏆</th>
+            <th style={{textAlign: 'center'}}>%</th>
           </tr></thead>
           <tbody>
             {currentStats.map((p, i) => (
@@ -137,10 +139,9 @@ function App() {
         </table>
       </div>
 
-      {/* МІНІМАЛІСТИЧНИЙ АРХІВ */}
       <div style={{marginTop: '30px'}}>
         <h3 style={{textAlign: 'left', marginLeft: '5px', marginBottom: '10px', fontSize: '16px', color: '#2d3436'}}>📜 Остання активність</h3>
-        <div style={{background: 'white', borderRadius: '20px', padding: '10px 5px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)'}}>
+        <div style={{background: 'white', borderRadius: '20px', padding: '5px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)'}}>
           {[...history].reverse().slice(0, 8).map((g) => (
             <div key={g.id} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -166,8 +167,6 @@ function App() {
     </div>
   );
 
-  // Решта екранів (select-role, game, admin-auth, lobby) залишаються без змін з попереднього кроку
-  // ... (весь інший функціонал та дизайн лоббі/гри збережено)
   if (screen === 'select-role') return (
     <div className="container" style={{padding: '20px'}}>
       <h2>Хто грає?</h2>
@@ -214,7 +213,7 @@ function App() {
                 return (
                   <tr key={p.name} style={{borderBottom: '1px solid #dfe6e9', background: idx % 2 === 0 ? '#fff' : '#f9f9f9'}}>
                     <td style={{padding: '12px', fontWeight: 'bold', fontSize: '20px', position: 'sticky', left: 0, background: idx % 2 === 0 ? '#fff' : '#f9f9f9', boxShadow: '2px 0 5px rgba(0,0,0,0.05)', zIndex: 5}}>{p.name}</td>
-                    <td style={{padding: '12px', textAlign: 'center', fontSize: '42px', fontWeight: '900', color: '#2d3436', background: total >= targetScore ? '#ff7675' : (total >= targetScore - 1 ? '#ffeaa7' : 'transparent')}}>{total}</td>
+                    <td style={{padding: '12px', textAlign: 'center', fontSize: '35px', fontWeight: '900', color: '#2d3436', background: total >= targetScore ? '#ff7675' : (total >= targetScore - 1 ? '#ffeaa7' : 'transparent')}}>{total}</td>
                     {[...Array(maxR + 1)].map((_, i) => {
                       const val = parseInt(p.levels?.[i] || 0);
                       return (
