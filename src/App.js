@@ -12,7 +12,6 @@ function App() {
   const [winners, setWinners] = useState([]); 
   const [history, setHistory] = useState([]);
   const [playerList, setPlayerList] = useState([]);
-  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     onValue(ref(db, 'player_list'), (snapshot) => {
@@ -39,15 +38,6 @@ function App() {
       }
     });
   }, [screen]);
-
-  const theme = {
-    bg: darkMode ? '#121212' : '#f8f9fd',
-    card: darkMode ? '#1e1e1e' : 'white',
-    text: darkMode ? '#ffffff' : '#2d3436',
-    subText: darkMode ? '#b0b0b0' : '#636e72',
-    border: darkMode ? '#333' : '#eee',
-    podiumOuter: darkMode ? 'rgba(255,255,255,0.05)' : 'white'
-  };
 
   const calculateStats = () => {
     const statsMap = {};
@@ -82,103 +72,125 @@ function App() {
     setWinners([]); setScreen('main');
   };
 
-  // Компонент кнопки "Назад" з виправленим кольором тексту
-  const BackButton = ({ onClick, style }) => (
-    <button className="finish-btn" onClick={onClick} style={{
-      marginTop: '20px', 
-      color: '#2d3436', 
-      fontWeight: 'bold',
-      background: '#2ecc71',
-      border: 'none',
-      padding: '10px 20px',
-      borderRadius: '8px',
-      ...style
-    }}>Назад</button>
-  );
-
   if (screen === 'main') return (
-    <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px 15px', transition: '0.3s'}}>
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'}}>
-        <h1 style={{fontSize: '24px', color: theme.text, fontWeight: '800', margin: 0}}>🏆 Munchkin Stats</h1>
-        <button onClick={() => setDarkMode(!darkMode)} style={{background: theme.card, border: `1px solid ${theme.border}`, borderRadius: '50%', width: '40px', height: '40px', fontSize: '20px', cursor: 'pointer'}}>
-          {darkMode ? '☀️' : '🌙'}
-        </button>
-      </div>
+    <div className="container" style={{background: '#f8f9fd', minHeight: '100vh', padding: '20px 15px'}}>
+      <h1 style={{fontSize: '26px', color: '#2d3436', marginBottom: '25px', fontWeight: '800'}}>🏆 Munchkin Stats</h1>
       
-      {/* Виправлений П'єдестал */}
-      <div style={{background: theme.podiumOuter, borderRadius: '20px', padding: '15px', display: 'flex', gap: '10px', marginBottom: '25px', border: darkMode ? '1px solid #333' : 'none'}}>
-        <div style={{flex: 1, background: theme.card, padding: '10px', borderRadius: '12px', textAlign: 'center', border: darkMode ? '1px solid #444' : '1px solid #eee'}}>
-          <div style={{fontSize: '10px', color: theme.subText}}>🎮 МАТЧІ</div>
-          <div style={{fontSize: '14px', fontWeight: 'bold', color: theme.text, margin: '5px 0'}}>{podium.matches.names}</div>
-          <div style={{color: '#ff7675', fontWeight: 'bold'}}>{podium.matches.value}</div>
+      <div className="podium-container" style={{display: 'grid', gridTemplateColumns: '1fr 1.1fr 1fr', gap: '8px', marginBottom: '25px'}}>
+        <div className="podium-item" style={{background: 'white', borderRadius: '16px', padding: '12px 5px', border: '1px solid #eee'}}>
+          <div style={{fontSize: '10px', color: '#636e72'}}>🎮 МАТЧІ</div>
+          <div style={{fontSize: '14px', fontWeight: 'bold'}}>{podium.matches.names}</div>
+          <div style={{fontSize: '16px', color: '#ff7675'}}>{podium.matches.value}</div>
         </div>
-        <div style={{flex: 1.2, background: theme.card, padding: '10px', borderRadius: '12px', textAlign: 'center', border: '2px solid #fdcb6e', transform: 'scale(1.05)'}}>
-          <div style={{fontSize: '10px', color: theme.subText}}>👑 ПЕРЕМОГИ</div>
-          <div style={{fontSize: '15px', fontWeight: 'bold', color: theme.text, margin: '5px 0'}}>{podium.wins.names}</div>
-          <div style={{color: '#ff7675', fontWeight: 'bold'}}>{podium.wins.value}</div>
+        <div className="podium-item gold" style={{background: 'white', borderRadius: '16px', padding: '12px 5px', border: '2px solid #fdcb6e'}}>
+          <div style={{fontSize: '10px', color: '#636e72'}}>👑 ПЕРЕМОГИ</div>
+          <div style={{fontSize: '15px', fontWeight: 'bold'}}>{podium.wins.names}</div>
+          <div style={{fontSize: '18px', color: '#ff7675'}}>{podium.wins.value}</div>
         </div>
-        <div style={{flex: 1, background: theme.card, padding: '10px', borderRadius: '12px', textAlign: 'center', border: darkMode ? '1px solid #444' : '1px solid #eee'}}>
-          <div style={{fontSize: '10px', color: theme.subText}}>📈 ВІНРЕЙТ</div>
-          <div style={{fontSize: '14px', fontWeight: 'bold', color: theme.text, margin: '5px 0'}}>Ліза</div>
-          <div style={{color: '#ff7675', fontWeight: 'bold'}}>100%</div>
+        <div className="podium-item" style={{background: 'white', borderRadius: '16px', padding: '12px 5px', border: '1px solid #eee'}}>
+          <div style={{fontSize: '10px', color: '#636e72'}}>📈 ВІНРЕЙТ</div>
+          <div style={{fontSize: '14px', fontWeight: 'bold'}}>Ліза</div>
+          <div style={{fontSize: '16px', color: '#ff7675'}}>100%</div>
         </div>
       </div>
 
-      <div style={{background: theme.card, borderRadius: '20px', padding: '15px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)'}}>
-        <h3 style={{color: theme.text, marginBottom: '15px'}}>📊 Рейтинг</h3>
-        <table style={{width: '100%', color: theme.text}}>
-          <thead><tr style={{color: theme.subText, fontSize: '12px'}}><th style={{textAlign: 'left'}}>ГРАВЕЦЬ</th><th>М</th><th>🏆</th></tr></thead>
+      <div className="stats-card" style={{background: 'white', borderRadius: '20px', padding: '15px', boxShadow: '0 10px 25px rgba(0,0,0,0.03)'}}>
+        <h3 style={{marginBottom: '12px'}}>📊 Рейтинг</h3>
+        <table style={{width: '100%', borderCollapse: 'collapse'}}>
+          <thead><tr style={{color: '#b2bec3', fontSize: '11px'}}><th style={{textAlign: 'left', padding: '10px'}}>ГРАВЕЦЬ</th><th>М</th><th>🏆</th></tr></thead>
           <tbody>
             {currentStats.map((p, i) => (
-              <tr key={i} style={{borderBottom: `1px solid ${theme.border}`}}>
-                <td style={{padding: '12px 0', fontWeight: 'bold'}}>{p.name}</td>
+              <tr key={i} style={{borderBottom: '1px solid #f8f9fd'}}>
+                <td style={{padding: '12px 10px', fontWeight: 'bold'}}>{p.name}</td>
                 <td style={{textAlign: 'center'}}>{p.matches}</td>
-                <td style={{textAlign: 'center', color: '#6c5ce7', fontWeight: 'bold'}}>{p.wins}</td>
+                <td style={{textAlign: 'center', fontWeight: 'bold', color: '#6c5ce7'}}>{p.wins}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <button className="start-btn" onClick={() => setScreen('select-role')} style={{marginTop: '25px', width: '100%', padding: '15px', borderRadius: '12px', background: '#2d3436', color: 'white', fontWeight: 'bold', border: 'none'}}>Нова гра</button>
+      <button className="start-btn" onClick={() => setScreen('select-role')} style={{marginTop: '25px', width: '100%', padding: '16px', borderRadius: '16px', background: '#2d3436', color: 'white', fontWeight: 'bold', border: 'none'}}>Нова гра</button>
+    </div>
+  );
+
+  if (screen === 'select-role') return (
+    <div className="container" style={{padding: '20px'}}>
+      <h2>Хто грає?</h2>
+      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
+        {playerList.map(n => (
+          <button key={n} className="role-btn" onClick={() => { update(ref(db, `current_game/players/${n}`), { name: n, levels: { 0: 0 } }); setScreen('lobby'); }} style={{padding: '15px', borderRadius: '12px', border: '1px solid #eee', background: 'white'}}>{n}</button>
+        ))}
+      </div>
+      <button className="finish-btn" onClick={() => setScreen('main')} style={{marginTop: '20px'}}>Назад</button>
     </div>
   );
 
   if (screen === 'lobby') return (
-    <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px'}}>
-      <h2 style={{color: theme.text}}>🏠 Лобі гри</h2>
-      <div style={{display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '100%', boxSizing: 'border-box'}}>
-        {Object.values(lobbyPlayers).map(p => (
-          <div key={p.name} style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-            background: theme.card, color: theme.text, padding: '15px', borderRadius: '12px',
-            border: `1px solid ${theme.border}`, width: '100%', boxSizing: 'border-box'
-          }}>
-            <span style={{fontWeight: 'bold'}}>✅ {p.name}</span>
-            {isAdmin && <button onClick={() => remove(ref(db, `current_game/players/${p.name}`))} style={{background: '#ff7675', border: 'none', color: 'white', borderRadius: '50%', width: '24px', height: '24px'}}>✕</button>}
+    <div className="container" style={{padding: '20px'}}>
+      <h2>🏠 Лобі гри</h2>
+      {Object.values(lobbyPlayers).map(p => (
+        <div key={p.name} style={{padding: '15px', background: '#f1f2f6', borderRadius: '12px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between'}}>
+          <span>✅ {p.name}</span>
+          {isAdmin && <button onClick={() => remove(ref(db, `current_game/players/${p.name}`))} style={{background: 'none', border: 'none', color: '#ff7675', fontWeight: 'bold'}}>✕</button>}
+        </div>
+      ))}
+      <button className="start-btn" onClick={() => update(ref(db, 'current_game'), { status: 'active' })} style={{width: '100%', marginTop: '10px'}}>🚀 Почати гру</button>
+      <button className="finish-btn" onClick={() => setScreen('select-role')} style={{marginTop: '10px'}}>Назад</button>
+    </div>
+  );
+
+  if (screen === 'game') {
+    const players = Object.values(lobbyPlayers), maxR = players.reduce((m, p) => Math.max(m, p.levels ? Object.keys(p.levels).length - 1 : 0), 0);
+    return (
+      <div className="container" style={{maxWidth: '100%', padding: '10px'}}>
+        <h2>🎯 Ціль: {targetScore}</h2>
+        <div className="table-wrapper" style={{overflowX: 'auto', background: 'white', borderRadius: '12px'}}>
+          <table style={{width: '100%', borderCollapse: 'collapse'}}>
+            <thead style={{background: '#2d3436', color: 'white'}}>
+              <tr><th style={{padding: '12px'}}>Ім'я</th><th>LVL</th>{[...Array(maxR + 1)].map((_, i) => <th key={i}>К{i+1}</th>)}</tr>
+            </thead>
+            <tbody>
+              {players.map(p => {
+                const total = Object.values(p.levels || {}).reduce((a, b) => a + b, 1);
+                return (
+                  <tr key={p.name} style={{borderBottom: '1px solid #eee'}}>
+                    <td style={{padding: '12px', fontWeight: 'bold'}}>{p.name}</td>
+                    <td style={{textAlign: 'center', fontSize: '24px', fontWeight: 'bold'}}>{total}</td>
+                    {[...Array(maxR + 1)].map((_, i) => {
+                      const val = parseInt(p.levels?.[i] || 0);
+                      return (
+                        <td key={i} style={{textAlign: 'center', padding: '5px'}}>
+                          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#f8f9fa', borderRadius: '8px', padding: '5px'}}>
+                            {isAdmin && <button onClick={() => update(ref(db, `current_game/players/${p.name}/levels`), {[i]: val + 1})} style={{background: '#55efc4', border: 'none', borderRadius: '4px', width: '30px'}}>+</button>}
+                            <span style={{fontWeight: 'bold', margin: '3px 0'}}>{val}</span>
+                            {isAdmin && <button onClick={() => update(ref(db, `current_game/players/${p.name}/levels`), {[i]: val - 1})} style={{background: '#fab1a0', border: 'none', borderRadius: '4px', width: '30px'}}>-</button>}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {isAdmin && (
+          <div style={{marginTop: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
+            <button className="role-btn" onClick={() => update(ref(db, `current_game/players/${players[0].name}/levels`), {[maxR + 1]: 0})} style={{gridColumn: 'span 2', background: '#55efc4'}}>➕ Коло</button>
+            <button className="finish-btn" onClick={() => { if(window.confirm("Завершити?")) finalReset(winners); }}>🏁 Завершити</button>
+            <button className="finish-btn" onClick={() => { if(prompt("Пароль:") === '2910') set(ref(db, 'current_game/targetScore'), targetScore === 10 ? 11 : 10); }}>⚙️ Ціль</button>
           </div>
-        ))}
+        )}
       </div>
-      {isAdmin && <button className="start-btn" onClick={() => update(ref(db, 'current_game'), { status: 'active' })} style={{marginTop: '20px', width: '100%', background: '#fdcb6e', color: '#2d3436'}}>🚀 Почати гру</button>}
-      <BackButton onClick={() => setScreen('select-role')} />
-    </div>
-  );
+    );
+  }
 
-  if (screen === 'admin-auth') return (
-    <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px'}}>
-      <h2 style={{color: theme.text}}>Вхід адміна</h2>
-      <input type="password" onChange={e => setPassword(e.target.value)} style={{width: '100%', padding: '15px', borderRadius: '12px', border: `1px solid ${theme.border}`, background: theme.card, color: theme.text, marginBottom: '15px'}} placeholder="Пароль" />
-      <button className="start-btn" onClick={() => { if(password === '2910') { setIsAdmin(true); setScreen('lobby'); } else alert('Невірно'); }} style={{width: '100%'}}>Увійти</button>
-    </div>
-  );
-
-  // Решта екранів (select-role, game) також використовують тему та BackButton...
-  // (Код скорочено для лаконічності, але логіка ідентична)
-  
   return (
-    <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px'}}>
-       <h2 style={{color: theme.text}}>Екран у розробці</h2>
-       <BackButton onClick={() => setScreen('main')} />
+    <div className="container" style={{padding: '20px', textAlign: 'center'}}>
+      <h2>Вхід адміна</h2>
+      <input type="password" onChange={e => setPassword(e.target.value)} style={{width: '100%', padding: '15px', marginBottom: '10px'}} placeholder="Пароль" />
+      <button className="start-btn" onClick={() => { if(password === '2910') { setIsAdmin(true); setScreen('main'); } else alert('Невірно'); }}>Увійти</button>
     </div>
   );
 }
