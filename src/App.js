@@ -51,7 +51,7 @@ function App() {
     subText: darkMode ? '#a0a0a0' : '#636e72',
     border: darkMode ? '#444' : '#eee',
     tableHead: darkMode ? '#000000' : '#2d3436',
-    backBtn: darkMode ? '#444' : '#e1e4e8' // Колір фону для кнопки "Назад"
+    backBtn: darkMode ? '#444' : '#e1e4e8'
   };
 
   const addNewPlayer = () => {
@@ -106,7 +106,6 @@ function App() {
     setWinners([]); setScreen('main');
   };
 
-  // Компонент стилізованої кнопки Назад
   const CustomBackButton = ({ onClick, text = "Назад" }) => (
     <button onClick={onClick} style={{
       marginTop: '20px',
@@ -118,7 +117,8 @@ function App() {
       fontWeight: 'bold',
       border: 'none',
       cursor: 'pointer',
-      fontSize: '14px'
+      fontSize: '14px',
+      boxSizing: 'border-box'
     }}>
       {text}
     </button>
@@ -202,17 +202,17 @@ function App() {
   );
 
   if (screen === 'select-role') return (
-    <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px', transition: '0.3s'}}>
+    <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px', transition: '0.3s', boxSizing: 'border-box'}}>
       <h2 style={{color: theme.text}}>Хто грає?</h2>
-      <button className="role-btn admin" style={{marginBottom: '10px', border: '2px solid #ffd700', background: theme.card, color: theme.text}} onClick={() => {
+      <button className="role-btn admin" style={{marginBottom: '10px', border: '2px solid #ffd700', background: theme.card, color: theme.text, width: '100%', boxSizing: 'border-box'}} onClick={() => {
         if (!isAdmin) setScreen('admin-auth');
         else { update(ref(db, `current_game/players/Єгор`), { name: "Єгор", levels: { 0: 0 } }); setScreen('lobby'); }
       }}>👑 Єгор</button>
-      {isAdmin && <button className="start-btn" onClick={addNewPlayer} style={{marginBottom: '15px', background: '#00cec9', fontSize: '14px', border: 'none'}}>➕ Додати гравця</button>}
+      {isAdmin && <button className="start-btn" onClick={addNewPlayer} style={{marginBottom: '15px', background: '#00cec9', fontSize: '14px', border: 'none', width: '100%', boxSizing: 'border-box'}}>➕ Додати гравця</button>}
       <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
         {playerList.filter(n => n !== "Єгор").map(n => (
           <div key={n} style={{position: 'relative'}}>
-            <button className="role-btn" onClick={() => { update(ref(db, `current_game/players/${n}`), { name: n, levels: { 0: 0 } }); setScreen('lobby'); }} style={{width: '100%', background: theme.card, color: theme.text, border: `1px solid ${theme.border}`}}>{n}</button>
+            <button className="role-btn" onClick={() => { update(ref(db, `current_game/players/${n}`), { name: n, levels: { 0: 0 } }); setScreen('lobby'); }} style={{width: '100%', background: theme.card, color: theme.text, border: `1px solid ${theme.border}`, boxSizing: 'border-box'}}>{n}</button>
             {isAdmin && <button onClick={(e) => { e.stopPropagation(); deleteFromList(n); }} style={{position: 'absolute', top: '-5px', right: '-5px', background: '#ff7675', color: 'white', border: 'none', borderRadius: '50%', width: '22px', height: '22px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', zIndex: 10}}>✕</button>}
           </div>
         ))}
@@ -224,9 +224,9 @@ function App() {
   if (screen === 'game') {
     const players = Object.values(lobbyPlayers), maxR = players.reduce((m, p) => Math.max(m, p.levels ? Object.keys(p.levels).length - 1 : 0), 0);
     return (
-      <div className="container" style={{maxWidth: '100%', padding: '10px', background: theme.bg, minHeight: '100vh', transition: '0.3s'}}>
+      <div className="container" style={{maxWidth: '100%', padding: '10px', background: theme.bg, minHeight: '100vh', transition: '0.3s', boxSizing: 'border-box'}}>
         {winners.length > 0 && (
-          <div className="winner-overlay"><div className="winner-card" style={{textAlign: 'center', padding: '30px', background: theme.card, color: theme.text}}>
+          <div className="winner-overlay"><div className="winner-card" style={{textAlign: 'center', padding: '30px', background: theme.card, color: theme.text, boxSizing: 'border-box'}}>
               <h2 style={{fontSize: '40px'}}>🎉 ПЕРЕМОГА! 🎉</h2>
               <div style={{fontSize: '24px', fontWeight: 'bold', marginBottom: '20px'}}>{winners.join(', ')}</div>
               {isAdmin ? (
@@ -278,26 +278,26 @@ function App() {
   }
 
   if (screen === 'admin-auth') return (
-    <div className="container" style={{background: theme.bg, minHeight: '100vh', transition: '0.3s', padding: '20px'}}>
+    <div className="container" style={{background: theme.bg, minHeight: '100vh', transition: '0.3s', padding: '20px', boxSizing: 'border-box'}}>
       <h2 style={{color: theme.text}}>Вхід адміна</h2>
-      <input type="password" onChange={e => setPassword(e.target.value)} className="password-input" style={{background: theme.card, color: theme.text, border: `1px solid ${theme.border}`}} placeholder="Пароль" autoFocus />
-      <button className="start-btn" onClick={() => { if(password === '2910') { setIsAdmin(true); update(ref(db, `current_game/players/Єгор`), { name: "Єгор", levels: { 0: 0 } }); setScreen('lobby'); } else alert('Невірно'); }}>Увійти</button>
+      <input type="password" onChange={e => setPassword(e.target.value)} className="password-input" style={{background: theme.card, color: theme.text, border: `1px solid ${theme.border}`, width: '100%', boxSizing: 'border-box'}} placeholder="Пароль" autoFocus />
+      <button className="start-btn" onClick={() => { if(password === '2910') { setIsAdmin(true); update(ref(db, `current_game/players/Єгор`), { name: "Єгор", levels: { 0: 0 } }); setScreen('lobby'); } else alert('Невірно'); }} style={{width: '100%', boxSizing: 'border-box'}}>Увійти</button>
       <CustomBackButton onClick={() => setScreen('select-role')} />
     </div>
   );
 
   if (screen === 'lobby') return (
-    <div className="container" style={{background: theme.bg, minHeight: '100vh', transition: '0.3s', padding: '20px'}}>
+    <div className="container" style={{background: theme.bg, minHeight: '100vh', transition: '0.3s', padding: '20px', boxSizing: 'border-box'}}>
       <h2 style={{color: theme.text}}>🏠 Лобі гри</h2>
       <div style={{display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px'}}>
         {Object.values(lobbyPlayers).map(p => (
-          <div key={p.name} className="role-btn" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: theme.card, color: theme.text, border: `1px solid ${theme.border}`, cursor: 'default'}}>
+          <div key={p.name} className="role-btn" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: theme.card, color: theme.text, border: `1px solid ${theme.border}`, cursor: 'default', width: '100%', boxSizing: 'border-box'}}>
             <span>✅ {p.name}</span>
             {isAdmin && <button onClick={() => remove(ref(db, `current_game/players/${p.name}`))} style={{background: '#ff7675', color: 'white', border: 'none', borderRadius: '50%', width: '25px', height: '25px', cursor: 'pointer', fontWeight: 'bold'}}>✕</button>}
           </div>
         ))}
       </div>
-      {isAdmin && <button className="start-btn" onClick={() => update(ref(db, 'current_game'), { status: 'active' })} disabled={Object.keys(lobbyPlayers).length === 0}>🚀 Почати гру</button>}
+      {isAdmin && <button className="start-btn" onClick={() => update(ref(db, 'current_game'), { status: 'active' })} disabled={Object.keys(lobbyPlayers).length === 0} style={{width: '100%', boxSizing: 'border-box'}}>🚀 Почати гру</button>}
       <CustomBackButton onClick={() => setScreen('select-role')} text="Назад до вибору" />
     </div>
   );
