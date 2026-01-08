@@ -12,7 +12,7 @@ function App() {
   const [winners, setWinners] = useState([]); 
   const [history, setHistory] = useState([]);
   const [playerList, setPlayerList] = useState([]);
-  const [darkMode, setDarkMode] = useState(false); // Стан для нічного режиму
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     onValue(ref(db, 'player_list'), (snapshot) => {
@@ -50,7 +50,8 @@ function App() {
     text: darkMode ? '#ffffff' : '#2d3436',
     subText: darkMode ? '#a0a0a0' : '#636e72',
     border: darkMode ? '#444' : '#eee',
-    tableHead: darkMode ? '#000000' : '#2d3436'
+    tableHead: darkMode ? '#000000' : '#2d3436',
+    backBtn: darkMode ? '#444' : '#e1e4e8' // Колір фону для кнопки "Назад"
   };
 
   const addNewPlayer = () => {
@@ -76,7 +77,7 @@ function App() {
         Object.entries(game.matchesCount || {}).forEach(([name, count]) => { if (statsMap[name]) statsMap[name].matches += count; });
         game.winner.split(', ').forEach(w => { const n = w.trim(); if (statsMap[n]) statsMap[n].wins += 1; });
       } else {
-        const parts = game.participants.split(', '), winsArr = game.winner.split(', ');
+        const parts = game.participants?.split(', ') || [], winsArr = game.winner?.split(', ') || [];
         parts.forEach(p => { if (statsMap[p]) { statsMap[p].matches += 1; if (winsArr.includes(p)) statsMap[p].wins += 1; } });
       }
     });
@@ -104,6 +105,24 @@ function App() {
     set(ref(db, 'current_game'), { status: 'main', players: {}, targetScore: 10 });
     setWinners([]); setScreen('main');
   };
+
+  // Компонент стилізованої кнопки Назад
+  const CustomBackButton = ({ onClick, text = "Назад" }) => (
+    <button onClick={onClick} style={{
+      marginTop: '20px',
+      width: '100%',
+      padding: '14px',
+      borderRadius: '12px',
+      background: theme.backBtn,
+      color: theme.text,
+      fontWeight: 'bold',
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: '14px'
+    }}>
+      {text}
+    </button>
+  );
 
   if (screen === 'main') return (
     <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px 15px', transition: '0.3s'}}>
@@ -198,7 +217,7 @@ function App() {
           </div>
         ))}
       </div>
-      <button className="finish-btn" onClick={() => setScreen('main')} style={{marginTop: '20px', color: theme.subText}}>Назад</button>
+      <CustomBackButton onClick={() => setScreen('main')} text="Назад до головної" />
     </div>
   );
 
@@ -213,7 +232,7 @@ function App() {
               {isAdmin ? (
                 <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
                   <button className="start-btn" onClick={() => finalReset(winners)}>Зберегти 🏆</button>
-                  <button className="finish-btn" onClick={() => setWinners([])}>Назад</button>
+                  <button className="finish-btn" onClick={() => setWinners([])} style={{background: '#fab1a0', color: '#2d3436'}}>Назад</button>
                 </div>
               ) : <button className="start-btn" onClick={() => setWinners([])}>Зрозуміло 👍</button>}
           </div></div>
@@ -263,6 +282,7 @@ function App() {
       <h2 style={{color: theme.text}}>Вхід адміна</h2>
       <input type="password" onChange={e => setPassword(e.target.value)} className="password-input" style={{background: theme.card, color: theme.text, border: `1px solid ${theme.border}`}} placeholder="Пароль" autoFocus />
       <button className="start-btn" onClick={() => { if(password === '2910') { setIsAdmin(true); update(ref(db, `current_game/players/Єгор`), { name: "Єгор", levels: { 0: 0 } }); setScreen('lobby'); } else alert('Невірно'); }}>Увійти</button>
+      <CustomBackButton onClick={() => setScreen('select-role')} />
     </div>
   );
 
@@ -278,7 +298,7 @@ function App() {
         ))}
       </div>
       {isAdmin && <button className="start-btn" onClick={() => update(ref(db, 'current_game'), { status: 'active' })} disabled={Object.keys(lobbyPlayers).length === 0}>🚀 Почати гру</button>}
-      <button className="finish-btn" onClick={() => setScreen('select-role')} style={{color: theme.subText}}>Назад</button>
+      <CustomBackButton onClick={() => setScreen('select-role')} text="Назад до вибору" />
     </div>
   );
 
