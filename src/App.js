@@ -202,8 +202,8 @@ function App() {
                 const total = Object.values(p.levels || {}).reduce((a, b) => a + b, 1);
                 return (
                   <tr key={p.name} style={{borderBottom: '1px solid #dfe6e9', background: idx % 2 === 0 ? '#fff' : '#f9f9f9'}}>
-                    <td style={{padding: '12px', fontWeight: 'bold', position: 'sticky', left: 0, background: idx % 2 === 0 ? '#fff' : '#f9f9f9', boxShadow: '2px 0 5px rgba(0,0,0,0.05)', zIndex: 5}}>{p.name}</td>
-                    <td style={{padding: '12px', textAlign: 'center', fontSize: '18px', fontWeight: '800', background: total >= targetScore ? '#ff7675' : (total >= targetScore - 1 ? '#ffeaa7' : 'transparent')}}>{total}</td>
+                    <td style={{padding: '12px', fontWeight: 'bold', fontSize: '18px', position: 'sticky', left: 0, background: idx % 2 === 0 ? '#fff' : '#f9f9f9', boxShadow: '2px 0 5px rgba(0,0,0,0.05)', zIndex: 5}}>{p.name}</td>
+                    <td style={{padding: '12px', textAlign: 'center', fontSize: '36px', fontWeight: '900', color: '#2d3436', background: total >= targetScore ? '#ff7675' : (total >= targetScore - 1 ? '#ffeaa7' : 'transparent')}}>{total}</td>
                     {[...Array(maxR + 1)].map((_, i) => {
                       const val = parseInt(p.levels?.[i] || 0);
                       return (
