@@ -270,8 +270,9 @@ function App() {
   if (screen === 'game') {
     const players = Object.values(lobbyPlayers);
     const maxR = players.reduce((m, p) => Math.max(m, p.levels ? Object.keys(p.levels).length - 1 : 0), 0);
+    
     return (
-      <div className="container">
+      <div className="container" style={{maxWidth: '100%', padding: '10px'}}>
         {winners.length > 0 && (
           <div className="winner-overlay">
             <div className="winner-card">
@@ -282,31 +283,79 @@ function App() {
             </div>
           </div>
         )}
-        <h2>🎯 Ціль: {targetScore}</h2>
-        <table className="game-table">
-          <thead>
-            <tr><th>Ім'я</th><th>LVL</th>{[...Array(maxR + 1)].map((_, i) => <th key={i}>К{i+1}</th>)}</tr>
-          </thead>
-          <tbody>
-            {players.map(p => {
-              const total = Object.values(p.levels || {}).reduce((a, b) => a + b, 1);
-              return (
-                <tr key={p.name}>
-                  <td>{p.name}</td>
-                  <td style={{background: total >= targetScore ? '#ff7675' : '#fff3cd', fontWeight: 'bold'}}>{total}</td>
-                  {[...Array(maxR + 1)].map((_, i) => (
-                    <td key={i}><input type="number" disabled={!isAdmin} value={p.levels?.[i] || 0} 
-                        onChange={e => update(ref(db, `current_game/players/${p.name}/levels`), {[i]: parseInt(e.target.value) || 0})} className="level-input" /></td>
-                  ))}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
+           <h2 style={{margin: 0}}>🎯 Ціль: {targetScore}</h2>
+           {isAdmin && <span style={{fontSize: '12px', background: '#ffeaa7', padding: '2px 8px', borderRadius: '10px'}}>Admin Mode</span>}
+        </div>
+
+        {/* Контейнер з горизонтальним скролом для таблиці */}
+        <div className="table-wrapper" style={{overflowX: 'auto', background: 'white', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)'}}>
+          <table className="game-table" style={{width: '100%', borderCollapse: 'collapse', minWidth: '400px'}}>
+            <thead>
+              <tr style={{background: '#2d3436', color: 'white'}}>
+                <th style={{padding: '12px', textAlign: 'left', position: 'sticky', left: 0, background: '#2d3436', zIndex: 10}}>Ім'я</th>
+                <th style={{padding: '12px'}}>LVL</th>
+                {[...Array(maxR + 1)].map((_, i) => <th key={i} style={{padding: '12px'}}>К{i+1}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {players.map((p, idx) => {
+                const total = Object.values(p.levels || {}).reduce((a, b) => a + b, 1);
+                const isLeader = total >= targetScore - 1 && total < targetScore;
+                
+                return (
+                  <tr key={p.name} style={{borderBottom: '1px solid #dfe6e9', background: idx % 2 === 0 ? '#fff' : '#f9f9f9'}}>
+                    <td style={{
+                      padding: '12px', 
+                      fontWeight: 'bold', 
+                      position: 'sticky', 
+                      left: 0, 
+                      background: idx % 2 === 0 ? '#fff' : '#f9f9f9',
+                      boxShadow: '2px 0 5px rgba(0,0,0,0.05)',
+                      zIndex: 5
+                    }}>{p.name}</td>
+                    
+                    <td style={{
+                      padding: '12px', 
+                      textAlign: 'center',
+                      fontSize: '18px',
+                      fontWeight: '800',
+                      color: total >= targetScore ? '#d63031' : (isLeader ? '#e17055' : '#2d3436'),
+                      background: total >= targetScore ? '#ff7675' : (isLeader ? '#ffeaa7' : 'transparent')
+                    }}>{total}</td>
+
+                    {[...Array(maxR + 1)].map((_, i) => (
+                      <td key={i} style={{padding: '5px', textAlign: 'center'}}>
+                        <input 
+                          type="number" 
+                          disabled={!isAdmin} 
+                          value={p.levels?.[i] || 0} 
+                          onChange={e => update(ref(db, `current_game/players/${p.name}/levels`), {[i]: parseInt(e.target.value) || 0})} 
+                          className="level-input"
+                          style={{
+                            width: '40px',
+                            padding: '8px 4px',
+                            border: isAdmin ? '1px solid #b2bec3' : 'none',
+                            background: isAdmin ? 'white' : 'transparent',
+                            textAlign: 'center',
+                            borderRadius: '6px',
+                            fontSize: '16px'
+                          }}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
         {isAdmin && (
-          <div className="admin-actions">
-            <button className="role-btn" onClick={() => update(ref(db, `current_game/players/${players[0].name}/levels`), {[maxR + 1]: 0})}>➕ Коло</button>
-            <button className="special-btn" onClick={() => {if(prompt("Пароль:")==="1234") update(ref(db, 'current_game'), {targetScore: targetScore === 10 ? 11 : 10})}}>⚙️ 10/11</button>
+          <div className="admin-actions" style={{marginTop: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
+            <button className="role-btn" onClick={() => update(ref(db, `current_game/players/${players[0].name}/levels`), {[maxR + 1]: 0})} style={{gridColumn: 'span 2', background: '#55efc4'}}>➕ Додати коло для всіх</button>
+            <button className="special-btn" onClick={() => {if(prompt("Пароль:")==="1234") update(ref(db, 'current_game'), {targetScore: targetScore === 10 ? 11 : 10})}}>⚙️ Ціль: {targetScore === 10 ? 11 : 10}</button>
             <button className="finish-btn" onClick={() => {
               const actW = players.filter(p => Object.values(p.levels || {}).reduce((a,b)=>a+b, 1) >= targetScore).map(p => p.name);
               if (actW.length > 0) { if (window.confirm(`Зберегти результат?`)) finalReset(actW); }
