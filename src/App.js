@@ -110,37 +110,35 @@ function App() {
         </table>
       </div>
 
-      {/* ОНОВЛЕНИЙ БЛОК ІСТОРІЇ */}
-      <div style={{marginTop: '30px', padding: '0 5px'}}>
-        <h3 style={{textAlign: 'left', marginBottom: '15px'}}>📜 Історія ігор</h3>
-        <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+      {/* БЛОК ІСТОРІЇ - БЕЗ КЛАСІВ */}
+      <div style={{marginTop: '30px'}}>
+        <h3 style={{textAlign: 'left', marginLeft: '10px'}}>📜 Історія ігор</h3>
+        <div style={{display: 'block'}}>
           {[...history].reverse().slice(0, 10).map((g) => (
             <div key={g.id} style={{
-              display: 'grid', 
-              gridTemplateColumns: '1fr 50px',
+              display: 'flex', 
+              flexDirection: 'row',
+              justifyContent: 'space-between',
               alignItems: 'center',
               background: 'white',
-              padding: '15px',
+              padding: '12px 15px',
+              margin: '8px 0',
               borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              borderLeft: '5px solid #27ae60',
-              textAlign: 'left'
+              boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+              borderLeft: '4px solid #2ecc71'
             }}>
-              <div style={{display: 'block', textAlign: 'left'}}>
-                <div style={{fontSize: '15px', fontWeight: 'bold', marginBottom: '4px', textAlign: 'left'}}>
+              <div style={{textAlign: 'left'}}>
+                <div style={{fontSize: '14px', fontWeight: 'bold', margin: 0}}>
                    {g.isArchive ? g.date : `${g.date} — ${g.winner} 🏆`}
                 </div>
-                <div style={{fontSize: '12px', color: '#636e72', lineHeight: '1.2', textAlign: 'left'}}>
+                <div style={{fontSize: '11px', color: '#95a5a6', marginTop: '2px'}}>
                   {g.participants}
                 </div>
               </div>
-              <button 
-                onClick={() => { if(prompt("Пароль:")==="1234") remove(ref(db, `games_history/${g.id}`)) }}
-                style={{
-                  background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer',
-                  display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: 0.5
-                }}
-              >🗑️</button>
+              <div onClick={() => { if(prompt("Пароль:")==="1234") remove(ref(db, `games_history/${g.id}`)) }} 
+                   style={{cursor: 'pointer', padding: '10px', fontSize: '18px', opacity: 0.4}}>
+                🗑️
+              </div>
             </div>
           ))}
         </div>
