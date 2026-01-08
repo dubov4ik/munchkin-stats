@@ -221,7 +221,7 @@ function App() {
                           <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: '#f8f9fa', borderRadius: '8px', padding: '4px'}}>
                             {isAdmin && <button onClick={() => update(ref(db, `current_game/players/${p.name}/levels`), {[i]: val + 1})} style={{background: '#55efc4', border: 'none', borderRadius: '4px', width: '32px', height: '28px', fontSize: '18px', fontWeight: 'bold'}}>+</button>}
                             <span style={{fontSize: '16px', fontWeight: '700', minWidth: '20px'}}>{val}</span>
-                            {isAdmin && <button onClick={() => update(ref(db, `current_game/players/${p.name}/levels`), {[i]: Math.max(0, val - 1)})} style={{background: '#fab1a0', border: 'none', borderRadius: '4px', width: '32px', height: '28px', fontSize: '18px', fontWeight: 'bold'}}>-</button>}
+                            {isAdmin && <button onClick={() => update(ref(db, `current_game/players/${p.name}/levels`), {[i]: val - 1})} style={{background: '#fab1a0', border: 'none', borderRadius: '4px', width: '32px', height: '28px', fontSize: '18px', fontWeight: 'bold'}}>-</button>}
                           </div>
                         </td>
                       );
