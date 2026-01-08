@@ -123,7 +123,6 @@ function App() {
         </button>
       </div>
       
-      {/* Оновлений п'єдестал без білого фону (background: transparent) */}
       <div className="podium-container" style={{display: 'grid', gridTemplateColumns: '1fr 1.1fr 1fr', gap: '8px', marginBottom: '25px', background: 'transparent'}}>
         <div className="podium-item" style={{background: theme.card, borderRadius: '16px', padding: '12px 5px', border: `1px solid ${theme.border}`, boxSizing: 'border-box'}}>
           <div style={{fontSize: '10px', color: theme.subText, fontWeight: 'bold'}}>🎮 МАТЧІ</div>
@@ -256,7 +255,9 @@ function App() {
         {isAdmin && (
           <div className="admin-actions" style={{marginTop: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
             <button className="role-btn" onClick={() => update(ref(db, `current_game/players/${players[0].name}/levels`), {[maxR + 1]: 0})} style={{gridColumn: 'span 2', background: '#55efc4'}}>➕ Коло</button>
-            <button className="finish-btn" onClick={() => finalReset(winners)} style={{gridColumn: 'span 2', background: '#ff7675', padding: '15px', borderRadius: '12px', color: 'white', border: 'none', fontWeight: 'bold'}}>🏁 Завершити</button>
+            {/* КНОПКА ЦІЛІ ПОВЕРНУЛАСЯ СЮДИ */}
+            <button className="special-btn" style={{background: theme.card, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: '12px', fontWeight: 'bold'}} onClick={() => {if(prompt("Пароль:")==="2910") update(ref(db, 'current_game'), {targetScore: targetScore === 10 ? 11 : 10})}}>⚙️ Ціль: {targetScore === 10 ? 11 : 10}</button>
+            <button className="finish-btn" onClick={() => { const actW = players.filter(p => Object.values(p.levels || {}).reduce((a,b)=>a+b, 1) >= targetScore).map(p => p.name); if (actW.length > 0) { if (window.confirm(`Зберегти результат?`)) finalReset(actW); } else { if (window.confirm("Завершити без збереження?")) finalReset(); } }} style={{background: '#ff7675', borderRadius: '12px', color: 'white', border: 'none', fontWeight: 'bold'}}>🏁 Завершити</button>
           </div>
         )}
       </div>
