@@ -12,7 +12,17 @@ function App() {
   const [winners, setWinners] = useState([]); 
   const [history, setHistory] = useState([]);
   const [playerList, setPlayerList] = useState([]);
-  const [darkMode, setDarkMode] = useState(false);
+  
+  // 1. Ініціалізація стану з localStorage
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('munchkinDarkMode') === 'true';
+  });
+
+  // 2. Збереження вибору в localStorage при зміні та фікс фону body
+  useEffect(() => {
+    localStorage.setItem('munchkinDarkMode', darkMode);
+    document.body.style.backgroundColor = darkMode ? '#1a1a1a' : '#f8f9fd';
+  }, [darkMode]);
 
   useEffect(() => {
     onValue(ref(db, 'player_list'), (snapshot) => {
@@ -255,7 +265,6 @@ function App() {
         {isAdmin && (
           <div className="admin-actions" style={{marginTop: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
             <button className="role-btn" onClick={() => update(ref(db, `current_game/players/${players[0].name}/levels`), {[maxR + 1]: 0})} style={{gridColumn: 'span 2', background: '#55efc4'}}>➕ Коло</button>
-            {/* КНОПКА ЦІЛІ ПОВЕРНУЛАСЯ СЮДИ */}
             <button className="special-btn" style={{background: theme.card, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: '12px', fontWeight: 'bold'}} onClick={() => {if(prompt("Пароль:")==="2910") update(ref(db, 'current_game'), {targetScore: targetScore === 10 ? 11 : 10})}}>⚙️ Ціль: {targetScore === 10 ? 11 : 10}</button>
             <button className="finish-btn" onClick={() => { const actW = players.filter(p => Object.values(p.levels || {}).reduce((a,b)=>a+b, 1) >= targetScore).map(p => p.name); if (actW.length > 0) { if (window.confirm(`Зберегти результат?`)) finalReset(actW); } else { if (window.confirm("Завершити без збереження?")) finalReset(); } }} style={{background: '#ff7675', borderRadius: '12px', color: 'white', border: 'none', fontWeight: 'bold'}}>🏁 Завершити</button>
           </div>
