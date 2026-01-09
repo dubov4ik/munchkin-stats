@@ -9,16 +9,15 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [lobbyPlayers, setLobbyPlayers] = useState({});
   const [targetScore, setTargetScore] = useState(10);
+  const [gameStatus, setGameStatus] = useState('main'); // Додано стан статусу гри
   const [winners, setWinners] = useState([]); 
   const [history, setHistory] = useState([]);
   const [playerList, setPlayerList] = useState([]);
   
-  // 1. Ініціалізація стану з localStorage
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('munchkinDarkMode') === 'true';
   });
 
-  // 2. Збереження вибору в localStorage при зміні та фікс фону body
   useEffect(() => {
     localStorage.setItem('munchkinDarkMode', darkMode);
     document.body.style.backgroundColor = darkMode ? '#1a1a1a' : '#f8f9fd';
@@ -45,11 +44,20 @@ function App() {
       if (data) {
         setLobbyPlayers(data.players || {});
         setTargetScore(data.targetScore || 10);
-        if (data.status === 'active' && !['main', 'select-role', 'admin-auth'].includes(screen)) setScreen('game');
+        setGameStatus(data.status || 'main');
+        
+        // Автоматичний перехід на екран гри для тих, хто вже в ній, якщо адмін дав старт
+        if (data.status === 'active' && !['main', 'select-role', 'admin-auth', 'game'].includes(screen)) {
+            setScreen('game');
+        }
+
         if (data.status === 'active' && data.players) {
           const winList = Object.values(data.players).filter(p => Object.values(p.levels || {}).reduce((a, b) => a + b, 1) >= (data.targetScore || 10)).map(p => p.name);
           setWinners(winList);
         }
+      } else {
+        setGameStatus('main');
+        setLobbyPlayers({});
       }
     });
   }, [screen]);
@@ -124,6 +132,7 @@ function App() {
     }}>{text}</button>
   );
 
+  // --- Екран 1: Головна ---
   if (screen === 'main') return (
     <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px 15px', transition: '0.3s'}}>
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'}}>
@@ -190,33 +199,53 @@ function App() {
         </div>
       </div>
 
-      <button className="start-btn" onClick={() => setScreen('select-role')} style={{
-        marginTop: '25px', width: '100%', padding: '16px', borderRadius: '16px', 
-        background: darkMode ? '#6c5ce7' : '#2d3436', color: 'white', fontSize: '16px', fontWeight: 'bold', border: 'none'
-      }}>Нова гра</button>
+      {/* ЛОГІКА КНОПКИ ГЛЯДАЧА */}
+      {gameStatus === 'active' ? (
+        <button className="start-btn" onClick={() => setScreen('game')} style={{
+          marginTop: '25px', width: '100%', padding: '16px', borderRadius: '16px', 
+          background: '#fdcb6e', color: '#2d3436', fontSize: '16px', fontWeight: 'bold', border: 'none'
+        }}>👁️ Приєднатися як глядач</button>
+      ) : (
+        <button className="start-btn" onClick={() => setScreen('select-role')} style={{
+          marginTop: '25px', width: '100%', padding: '16px', borderRadius: '16px', 
+          background: darkMode ? '#6c5ce7' : '#2d3436', color: 'white', fontSize: '16px', fontWeight: 'bold', border: 'none'
+        }}>Нова гра</button>
+      )}
     </div>
   );
 
+  // --- Екран 2: Вибір ролі ---
   if (screen === 'select-role') return (
     <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px', boxSizing: 'border-box'}}>
       <h2 style={{color: theme.text}}>Хто грає?</h2>
-      <button className="role-btn admin" style={{marginBottom: '10px', border: '2px solid #ffd700', background: theme.card, color: theme.text, width: '100%', boxSizing: 'border-box'}} onClick={() => {
-        if (!isAdmin) setScreen('admin-auth');
-        else { update(ref(db, `current_game/players/Єгор`), { name: "Єгор", levels: { 0: 0 } }); setScreen('lobby'); }
-      }}>👑 Єгор</button>
-      {isAdmin && <button className="start-btn" onClick={addNewPlayer} style={{marginBottom: '15px', background: '#00cec9', fontSize: '14px', border: 'none', width: '100%', boxSizing: 'border-box'}}>➕ Додати гравця</button>}
-      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
-        {playerList.filter(n => n !== "Єгор").map(n => (
-          <div key={n} style={{position: 'relative'}}>
-            <button className="role-btn" onClick={() => { update(ref(db, `current_game/players/${n}`), { name: n, levels: { 0: 0 } }); setScreen('lobby'); }} style={{width: '100%', background: theme.card, color: theme.text, border: `1px solid ${theme.border}`, boxSizing: 'border-box', padding: '15px', borderRadius: '12px'}}>{n}</button>
-            {isAdmin && <button onClick={(e) => { e.stopPropagation(); deleteFromList(n); }} style={{position: 'absolute', top: '-5px', right: '-5px', background: '#ff7675', color: 'white', border: 'none', borderRadius: '50%', width: '22px', height: '22px', fontWeight: 'bold', fontSize: '12px'}}>✕</button>}
+      
+      {/* Заборона доєднуватись, якщо гра вже йде */}
+      {gameStatus === 'active' ? (
+        <div style={{background: '#ff7675', color: 'white', padding: '15px', borderRadius: '12px', textAlign: 'center', marginBottom: '15px'}}>
+          Гра вже триває! Ви можете спостерігати за нею з головного екрану.
+        </div>
+      ) : (
+        <>
+          <button className="role-btn admin" style={{marginBottom: '10px', border: '2px solid #ffd700', background: theme.card, color: theme.text, width: '100%', boxSizing: 'border-box'}} onClick={() => {
+            if (!isAdmin) setScreen('admin-auth');
+            else { update(ref(db, `current_game/players/Єгор`), { name: "Єгор", levels: { 0: 0 } }); setScreen('lobby'); }
+          }}>👑 Єгор</button>
+          {isAdmin && <button className="start-btn" onClick={addNewPlayer} style={{marginBottom: '15px', background: '#00cec9', fontSize: '14px', border: 'none', width: '100%', boxSizing: 'border-box'}}>➕ Додати гравця</button>}
+          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
+            {playerList.filter(n => n !== "Єгор").map(n => (
+              <div key={n} style={{position: 'relative'}}>
+                <button className="role-btn" onClick={() => { update(ref(db, `current_game/players/${n}`), { name: n, levels: { 0: 0 } }); setScreen('lobby'); }} style={{width: '100%', background: theme.card, color: theme.text, border: `1px solid ${theme.border}`, boxSizing: 'border-box', padding: '15px', borderRadius: '12px'}}>{n}</button>
+                {isAdmin && <button onClick={(e) => { e.stopPropagation(); deleteFromList(n); }} style={{position: 'absolute', top: '-5px', right: '-5px', background: '#ff7675', color: 'white', border: 'none', borderRadius: '50%', width: '22px', height: '22px', fontWeight: 'bold', fontSize: '12px'}}>✕</button>}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
       <CustomBackButton onClick={() => setScreen('main')} text="Назад до головної" />
     </div>
   );
 
+  // --- Екран 3: Гра ---
   if (screen === 'game') {
     const players = Object.values(lobbyPlayers), maxR = players.reduce((m, p) => Math.max(m, p.levels ? Object.keys(p.levels).length - 1 : 0), 0);
     return (
@@ -269,10 +298,12 @@ function App() {
             <button className="finish-btn" onClick={() => { const actW = players.filter(p => Object.values(p.levels || {}).reduce((a,b)=>a+b, 1) >= targetScore).map(p => p.name); if (actW.length > 0) { if (window.confirm(`Зберегти результат?`)) finalReset(actW); } else { if (window.confirm("Завершити без збереження?")) finalReset(); } }} style={{background: '#ff7675', borderRadius: '12px', color: 'white', border: 'none', fontWeight: 'bold'}}>🏁 Завершити</button>
           </div>
         )}
+        <CustomBackButton onClick={() => setScreen('main')} text="На головну" />
       </div>
     );
   }
 
+  // --- Екран: Адмін авторизація ---
   if (screen === 'admin-auth') return (
     <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px', boxSizing: 'border-box'}}>
       <h2 style={{color: theme.text}}>Вхід адміна</h2>
@@ -282,6 +313,7 @@ function App() {
     </div>
   );
 
+  // --- Екран: Лобі ---
   if (screen === 'lobby') return (
     <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px', boxSizing: 'border-box'}}>
       <h2 style={{color: theme.text}}>🏠 Лобі гри</h2>
