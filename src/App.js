@@ -9,7 +9,7 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [lobbyPlayers, setLobbyPlayers] = useState({});
   const [targetScore, setTargetScore] = useState(10);
-  const [gameStatus, setGameStatus] = useState('main'); // Додано стан статусу гри
+  const [gameStatus, setGameStatus] = useState('main');
   const [winners, setWinners] = useState([]); 
   const [history, setHistory] = useState([]);
   const [playerList, setPlayerList] = useState([]);
@@ -46,7 +46,6 @@ function App() {
         setTargetScore(data.targetScore || 10);
         setGameStatus(data.status || 'main');
         
-        // Автоматичний перехід на екран гри для тих, хто вже в ній, якщо адмін дав старт
         if (data.status === 'active' && !['main', 'select-role', 'admin-auth', 'game'].includes(screen)) {
             setScreen('game');
         }
@@ -132,7 +131,6 @@ function App() {
     }}>{text}</button>
   );
 
-  // --- Екран 1: Головна ---
   if (screen === 'main') return (
     <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px 15px', transition: '0.3s'}}>
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'}}>
@@ -185,21 +183,24 @@ function App() {
       <div style={{marginTop: '30px'}}>
         <h3 style={{textAlign: 'left', marginLeft: '5px', marginBottom: '10px', fontSize: '16px', color: theme.text}}>📜 Остання активність</h3>
         <div style={{background: theme.card, borderRadius: '20px', padding: '5px', border: `1px solid ${theme.border}`}}>
-          {[...history].reverse().slice(0, 8).map((g) => (
-            <div key={g.id} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 15px', borderBottom: `1px solid ${theme.border}`}}>
-              <div style={{textAlign: 'left', flex: 1}}>
-                <div style={{fontSize: '14px', fontWeight: 'bold', color: theme.text}}>
-                   {g.isArchive ? <span style={{color: '#27ae60'}}>Архів (Excel)</span> : `${g.date} — ${g.winner} 🏆`}
+          {(() => {
+            const regularGames = history.filter(g => !g.isArchive).reverse(); 
+            const archiveGames = history.filter(g => g.isArchive);
+            return [...regularGames, ...archiveGames].slice(0, 10).map((g) => (
+              <div key={g.id} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 15px', borderBottom: `1px solid ${theme.border}`}}>
+                <div style={{textAlign: 'left', flex: 1}}>
+                  <div style={{fontSize: '14px', fontWeight: 'bold', color: theme.text}}>
+                     {g.isArchive ? <span style={{color: '#27ae60'}}>Архів (Excel)</span> : `${g.date} — ${g.winner} 🏆`}
+                  </div>
+                  <div style={{fontSize: '11px', color: theme.subText, marginTop: '2px'}}>{g.participants}</div>
                 </div>
-                <div style={{fontSize: '11px', color: theme.subText, marginTop: '2px'}}>{g.participants}</div>
+                <div onClick={() => { if(prompt("Пароль:")==="2910") remove(ref(db, `games_history/${g.id}`)) }} style={{cursor: 'pointer', padding: '5px', fontSize: '16px', opacity: 0.4}}>🗑️</div>
               </div>
-              <div onClick={() => { if(prompt("Пароль:")==="2910") remove(ref(db, `games_history/${g.id}`)) }} style={{cursor: 'pointer', padding: '5px', fontSize: '16px', opacity: 0.4}}>🗑️</div>
-            </div>
-          ))}
+            ));
+          })()}
         </div>
       </div>
 
-      {/* ЛОГІКА КНОПКИ ГЛЯДАЧА */}
       {gameStatus === 'active' ? (
         <button className="start-btn" onClick={() => setScreen('game')} style={{
           marginTop: '25px', width: '100%', padding: '16px', borderRadius: '16px', 
@@ -214,12 +215,9 @@ function App() {
     </div>
   );
 
-  // --- Екран 2: Вибір ролі ---
   if (screen === 'select-role') return (
     <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px', boxSizing: 'border-box'}}>
       <h2 style={{color: theme.text}}>Хто грає?</h2>
-      
-      {/* Заборона доєднуватись, якщо гра вже йде */}
       {gameStatus === 'active' ? (
         <div style={{background: '#ff7675', color: 'white', padding: '15px', borderRadius: '12px', textAlign: 'center', marginBottom: '15px'}}>
           Гра вже триває! Ви можете спостерігати за нею з головного екрану.
@@ -245,7 +243,6 @@ function App() {
     </div>
   );
 
-  // --- Екран 3: Гра ---
   if (screen === 'game') {
     const players = Object.values(lobbyPlayers), maxR = players.reduce((m, p) => Math.max(m, p.levels ? Object.keys(p.levels).length - 1 : 0), 0);
     return (
@@ -303,7 +300,6 @@ function App() {
     );
   }
 
-  // --- Екран: Адмін авторизація ---
   if (screen === 'admin-auth') return (
     <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px', boxSizing: 'border-box'}}>
       <h2 style={{color: theme.text}}>Вхід адміна</h2>
@@ -313,7 +309,6 @@ function App() {
     </div>
   );
 
-  // --- Екран: Лобі ---
   if (screen === 'lobby') return (
     <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px', boxSizing: 'border-box'}}>
       <h2 style={{color: theme.text}}>🏠 Лобі гри</h2>
