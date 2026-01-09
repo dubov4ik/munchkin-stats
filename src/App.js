@@ -5,7 +5,7 @@ import './App.css';
 
 function App() {
   const [screen, setScreen] = useState('main');
-  const [selectedGame, setSelectedGame] = useState(null); // Для перегляду історії
+  const [selectedGame, setSelectedGame] = useState(null); 
   const [password, setPassword] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [lobbyPlayers, setLobbyPlayers] = useState({});
@@ -85,6 +85,21 @@ function App() {
     return { color: theme.text };
   };
 
+  const addNewPlayer = () => {
+    const newName = prompt("Введіть ім'я нового гравця:");
+    if (newName && newName.trim() !== "") {
+      const trimmed = newName.trim();
+      if (playerList.includes(trimmed)) return alert("Вже є!");
+      set(ref(db, 'player_list'), [...playerList, trimmed]);
+    }
+  };
+
+  const deleteFromList = (nameToDelete) => {
+    if (prompt("Пароль для видалення:") === "2910") {
+      set(ref(db, 'player_list'), playerList.filter(n => n !== nameToDelete));
+    }
+  };
+
   const calculateStats = () => {
     const statsMap = {};
     playerList.forEach(name => { statsMap[name] = { name, matches: 0, wins: 0 }; });
@@ -106,7 +121,7 @@ function App() {
         date: new Date().toLocaleString('uk-UA', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
         winner: winnersList.join(', '),
         participants: Object.values(lobbyPlayers).map(p => p.name).join(', '),
-        details: lobbyPlayers, // ЗБЕРІГАЄМО ТАБЛИЦЮ
+        details: lobbyPlayers,
         finalTarget: targetScore
       });
     }
@@ -122,7 +137,6 @@ function App() {
     }}>{text}</button>
   );
 
-  // --- ЕКРАН 1: ГОЛОВНА ---
   if (screen === 'main') return (
     <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px 15px', transition: '0.3s'}}>
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'}}>
@@ -132,7 +146,6 @@ function App() {
         </button>
       </div>
 
-      {/* РЕЙТИНГ ТА ПОДІУМ (без змін для економії місця) */}
       <div className="stats-card" style={{background: theme.card, borderRadius: '20px', padding: '15px', border: `1px solid ${theme.border}`}}>
         <h3 style={{textAlign: 'left', marginBottom: '12px', fontSize: '16px', color: theme.text}}>📊 Рейтинг</h3>
         <table style={{width: '100%', borderCollapse: 'collapse'}}>
@@ -189,15 +202,13 @@ function App() {
     </div>
   );
 
-  // --- ЕКРАН ПЕРЕГЛЯДУ ІСТОРІЇ ---
   if (screen === 'view-game' && selectedGame) {
     const players = Object.values(selectedGame.details || {});
     const maxR = players.reduce((m, p) => Math.max(m, p.levels ? Object.keys(p.levels).length - 1 : 0), 0);
     return (
       <div className="container" style={{padding: '10px', background: theme.bg, minHeight: '100vh'}}>
         <h2 style={{color: theme.text, fontSize: '18px'}}>📅 {selectedGame.date}</h2>
-        <h3 style={{color: theme.subText, fontSize: '14px', marginBottom: '15px'}}>Ціль була: {selectedGame.finalTarget || 10}</h3>
-        
+        <h3 style={{color: theme.subText, fontSize: '14px', marginBottom: '15px'}}>Ціль: {selectedGame.finalTarget || 10}</h3>
         <div style={{overflowX: 'auto', background: theme.card, borderRadius: '12px'}}>
           <table className="game-table" style={{width: '100%', borderCollapse: 'collapse', minWidth: '350px'}}>
             <thead><tr style={{background: theme.tableHead, color: 'white'}}><th style={{padding: '10px'}}>Ім'я</th><th>LVL</th>{[...Array(maxR + 1)].map((_, i) => <th key={i}>К{i+1}</th>)}</tr></thead>
@@ -223,7 +234,28 @@ function App() {
     );
   }
 
-  // --- ЕКРАН ГРИ ---
+  if (screen === 'select-role') return (
+    <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px', boxSizing: 'border-box'}}>
+      <h2 style={{color: theme.text}}>Хто грає?</h2>
+      {isAdmin && (
+        <button onClick={addNewPlayer} style={{width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '12px', background: '#00cec9', color: 'white', border: 'none', fontWeight: 'bold', cursor: 'pointer'}}>➕ Додати гравця</button>
+      )}
+      <button className="role-btn admin" style={{marginBottom: '10px', border: '2px solid #fdcb6e', background: theme.card, color: theme.text, width: '100%'}} onClick={() => {
+        if (!isAdmin) setScreen('admin-auth');
+        else { update(ref(db, `current_game/players/Єгор`), { name: "Єгор", levels: { 0: 0 } }); setScreen('lobby'); }
+      }}>👑 {isAdmin ? "Єгор (Адмін)" : "Єгор"}</button>
+      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
+        {playerList.filter(n => n !== "Єгор").map(n => (
+          <div key={n} style={{position: 'relative'}}>
+            <button className="role-btn" onClick={() => { update(ref(db, `current_game/players/${n}`), { name: n, levels: { 0: 0 } }); setScreen('lobby'); }} style={{width: '100%', background: theme.card, color: theme.text, border: `1px solid ${theme.border}`, padding: '15px', borderRadius: '12px'}}>{n}</button>
+            {isAdmin && <button onClick={(e) => { e.stopPropagation(); deleteFromList(n); }} style={{position: 'absolute', top: '-5px', right: '-5px', background: '#ff7675', color: 'white', border: 'none', borderRadius: '50%', width: '22px', height: '22px', fontWeight: 'bold', cursor: 'pointer', zIndex: 10}}>✕</button>}
+          </div>
+        ))}
+      </div>
+      <CustomBackButton onClick={() => setScreen('main')} text="Назад" />
+    </div>
+  );
+
   if (screen === 'game') {
     const players = Object.values(lobbyPlayers), maxR = players.reduce((m, p) => Math.max(m, p.levels ? Object.keys(p.levels).length - 1 : 0), 0);
     return (
@@ -241,7 +273,7 @@ function App() {
           </div></div>
         )}
         <h2 style={{color: theme.text}}>🎯 Ціль: {targetScore}</h2>
-        <div style={{overflowX: 'auto', background: theme.card, borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)'}}>
+        <div style={{overflowX: 'auto', background: theme.card, borderRadius: '12px'}}>
           <table className="game-table" style={{width: '100%', borderCollapse: 'collapse', minWidth: '400px'}}>
             <thead><tr style={{background: theme.tableHead, color: 'white'}}><th style={{padding: '12px', textAlign: 'left'}}>Ім'я</th><th style={{padding: '12px'}}>LVL</th>{[...Array(maxR + 1)].map((_, i) => <th key={i}>К{i+1}</th>)}</tr></thead>
             <tbody>
@@ -249,7 +281,7 @@ function App() {
                 const total = Object.values(p.levels || {}).reduce((a, b) => a + b, 1);
                 const highlight = getHighlightStyle(total);
                 return (
-                  <tr key={p.name} style={{borderBottom: `1px solid ${theme.border}`, background: idx % 2 === 0 ? theme.card : (darkMode ? '#333' : '#f9f9f9'), transition: '0.3s'}}>
+                  <tr key={p.name} style={{borderBottom: `1px solid ${theme.border}`, background: idx % 2 === 0 ? theme.card : (darkMode ? '#333' : '#f9f9f9')}}>
                     <td style={{padding: '12px', fontWeight: 'bold', fontSize: '20px', ...highlight}}>{p.name}</td>
                     <td style={{padding: '12px', textAlign: 'center', fontSize: '30px', fontWeight: '900', ...highlight}}>{total}</td>
                     {[...Array(maxR + 1)].map((_, i) => {
@@ -282,26 +314,12 @@ function App() {
     );
   }
 
-  // --- ІНШІ ЕКРАНИ (auth, lobby, select-role) залишаються без змін ---
   if (screen === 'admin-auth') return (
     <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px'}}>
       <h2 style={{color: theme.text}}>Вхід адміна</h2>
       <input type="password" value={password} onChange={e => setPassword(e.target.value)} style={{background: theme.card, color: theme.text, border: `1px solid ${theme.border}`, width: '100%', padding: '15px', borderRadius: '12px'}} placeholder="Пароль" autoFocus />
       <button className="start-btn" onClick={() => { if(password === '2910') { setIsAdmin(true); setScreen('select-role'); } else alert('Невірно'); }} style={{width: '100%', marginTop: '10px', padding: '15px', borderRadius: '12px', background: '#6c5ce7', color: 'white', border: 'none'}}>Увійти</button>
       <CustomBackButton onClick={() => setScreen('select-role')} />
-    </div>
-  );
-
-  if (screen === 'select-role') return (
-    <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px'}}>
-      <h2 style={{color: theme.text}}>Хто грає?</h2>
-      <button className="role-btn admin" style={{marginBottom: '10px', border: '2px solid #ffd700', background: theme.card, color: theme.text, width: '100%'}} onClick={() => { if (!isAdmin) setScreen('admin-auth'); else { update(ref(db, `current_game/players/Єгор`), { name: "Єгор", levels: { 0: 0 } }); setScreen('lobby'); } }}>👑 Єгор</button>
-      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
-        {playerList.filter(n => n !== "Єгор").map(n => (
-          <button key={n} className="role-btn" onClick={() => { update(ref(db, `current_game/players/${n}`), { name: n, levels: { 0: 0 } }); setScreen('lobby'); }} style={{background: theme.card, color: theme.text, border: `1px solid ${theme.border}`, padding: '15px', borderRadius: '12px'}}>{n}</button>
-        ))}
-      </div>
-      <CustomBackButton onClick={() => setScreen('main')} text="Назад" />
     </div>
   );
 
