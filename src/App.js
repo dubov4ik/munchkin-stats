@@ -5,6 +5,7 @@ import './App.css';
 
 function App() {
   const [screen, setScreen] = useState('main');
+  const [selectedGame, setSelectedGame] = useState(null); // Для перегляду історії
   const [password, setPassword] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [lobbyPlayers, setLobbyPlayers] = useState({});
@@ -46,7 +47,8 @@ function App() {
         setTargetScore(data.targetScore || 10);
         setGameStatus(data.status || 'main');
         
-        if (data.status === 'active' && !['main', 'select-role', 'admin-auth', 'game'].includes(screen)) {
+        // Змінив список дозволених екранів, додавши view-game
+        if (data.status === 'active' && !['main', 'select-role', 'admin-auth', 'game', 'view-game'].includes(screen)) {
             setScreen('game');
         }
 
@@ -129,7 +131,9 @@ function App() {
       push(ref(db, 'games_history'), {
         date: new Date().toLocaleString('uk-UA', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
         winner: winnersList.join(', '),
-        participants: Object.values(lobbyPlayers).map(p => p.name).join(', ')
+        participants: Object.values(lobbyPlayers).map(p => p.name).join(', '),
+        details: lobbyPlayers, // Зберігаємо детальну таблицю
+        finalTarget: targetScore
       });
     }
     set(ref(db, 'current_game'), { status: 'main', players: {}, targetScore: 10 });
@@ -143,6 +147,39 @@ function App() {
       cursor: 'pointer', fontSize: '14px', boxSizing: 'border-box'
     }}>{text}</button>
   );
+
+  // --- ЕКРАН ПЕРЕГЛЯДУ ДЕТАЛЬНОЇ ГРИ (ОКО) ---
+  if (screen === 'view-game' && selectedGame) {
+    const players = Object.values(selectedGame.details || {});
+    const maxR = players.reduce((m, p) => Math.max(m, p.levels ? Object.keys(p.levels).length - 1 : 0), 0);
+    return (
+      <div className="container" style={{padding: '10px', background: theme.bg, minHeight: '100vh', boxSizing: 'border-box'}}>
+        <h2 style={{color: theme.text}}>📅 {selectedGame.date}</h2>
+        <h3 style={{color: theme.subText, fontSize: '14px', marginBottom: '15px'}}>Ціль була: {selectedGame.finalTarget || 10}</h3>
+        <div style={{overflowX: 'auto', background: theme.card, borderRadius: '12px'}}>
+          <table className="game-table" style={{width: '100%', borderCollapse: 'collapse', minWidth: '350px'}}>
+            <thead><tr style={{background: theme.tableHead, color: 'white'}}><th style={{padding: '10px'}}>Ім'я</th><th>LVL</th>{[...Array(maxR + 1)].map((_, i) => <th key={i}>К{i+1}</th>)}</tr></thead>
+            <tbody>
+              {players.map((p, idx) => {
+                const total = Object.values(p.levels || {}).reduce((a, b) => a + b, 1);
+                const highlight = getHighlightStyle(total);
+                return (
+                  <tr key={p.name} style={{borderBottom: `1px solid ${theme.border}`, background: idx % 2 === 0 ? theme.card : (darkMode ? '#333' : '#f9f9f9')}}>
+                    <td style={{padding: '10px', fontWeight: 'bold', ...highlight}}>{p.name}</td>
+                    <td style={{textAlign: 'center', fontSize: '20px', fontWeight: '900', ...highlight}}>{total}</td>
+                    {[...Array(maxR + 1)].map((_, i) => (
+                      <td key={i} style={{textAlign: 'center', color: theme.text, opacity: 0.7}}>{p.levels?.[i] || 0}</td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <CustomBackButton onClick={() => setScreen('main')} text="Закрити перегляд" />
+      </div>
+    );
+  }
 
   if (screen === 'main') return (
     <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px 15px', transition: '0.3s'}}>
@@ -207,7 +244,13 @@ function App() {
                   </div>
                   <div style={{fontSize: '11px', color: theme.subText, marginTop: '2px'}}>{g.participants}</div>
                 </div>
-                <div onClick={() => { if(prompt("Пароль:")==="2910") remove(ref(db, `games_history/${g.id}`)) }} style={{cursor: 'pointer', padding: '5px', fontSize: '16px', opacity: 0.4}}>🗑️</div>
+                <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                  {/* Кнопка ОКА (тільки якщо є деталі) */}
+                  {!g.isArchive && g.details && (
+                    <div onClick={() => { setSelectedGame(g); setScreen('view-game'); }} style={{cursor: 'pointer', fontSize: '18px', opacity: 0.6}}>👁️</div>
+                  )}
+                  <div onClick={() => { if(prompt("Пароль:")==="2910") remove(ref(db, `games_history/${g.id}`)) }} style={{cursor: 'pointer', padding: '5px', fontSize: '16px', opacity: 0.4}}>🗑️</div>
+                </div>
               </div>
             ));
           })()}
@@ -237,16 +280,23 @@ function App() {
         </div>
       ) : (
         <>
-          <button className="role-btn admin" style={{marginBottom: '10px', border: '2px solid #ffd700', background: theme.card, color: theme.text, width: '100%', boxSizing: 'border-box'}} onClick={() => {
+          <button className="role-btn admin" style={{marginBottom: '10px', border: '2px solid #fdcb6e', background: theme.card, color: theme.text, width: '100%', boxSizing: 'border-box'}} onClick={() => {
             if (!isAdmin) setScreen('admin-auth');
             else { update(ref(db, `current_game/players/Єгор`), { name: "Єгор", levels: { 0: 0 } }); setScreen('lobby'); }
-          }}>👑 Єгор</button>
-          {isAdmin && <button className="start-btn" onClick={addNewPlayer} style={{marginBottom: '15px', background: '#00cec9', fontSize: '14px', border: 'none', width: '100%', boxSizing: 'border-box'}}>➕ Додати гравця</button>}
+          }}>👑 {isAdmin ? "Єгор (Адмін)" : "Єгор"}</button>
+          
+          {isAdmin && (
+            <button onClick={addNewPlayer} style={{
+              width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '12px',
+              background: '#00cec9', color: 'white', border: 'none', fontWeight: 'bold', cursor: 'pointer'
+            }}>➕ Додати нового гравця</button>
+          )}
+
           <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
             {playerList.filter(n => n !== "Єгор").map(n => (
               <div key={n} style={{position: 'relative'}}>
                 <button className="role-btn" onClick={() => { update(ref(db, `current_game/players/${n}`), { name: n, levels: { 0: 0 } }); setScreen('lobby'); }} style={{width: '100%', background: theme.card, color: theme.text, border: `1px solid ${theme.border}`, boxSizing: 'border-box', padding: '15px', borderRadius: '12px'}}>{n}</button>
-                {isAdmin && <button onClick={(e) => { e.stopPropagation(); deleteFromList(n); }} style={{position: 'absolute', top: '-5px', right: '-5px', background: '#ff7675', color: 'white', border: 'none', borderRadius: '50%', width: '22px', height: '22px', fontWeight: 'bold', fontSize: '12px'}}>✕</button>}
+                {isAdmin && <button onClick={(e) => { e.stopPropagation(); deleteFromList(n); }} style={{position: 'absolute', top: '-5px', right: '-5px', background: '#ff7675', color: 'white', border: 'none', borderRadius: '50%', width: '22px', height: '22px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', zIndex: 10}}>✕</button>}
               </div>
             ))}
           </div>
