@@ -5,7 +5,7 @@ import './App.css';
 
 function App() {
   const [screen, setScreen] = useState('main');
-  const [selectedGame, setSelectedGame] = useState(null); // Для перегляду історії
+  const [selectedGame, setSelectedGame] = useState(null); 
   const [password, setPassword] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [lobbyPlayers, setLobbyPlayers] = useState({});
@@ -14,12 +14,18 @@ function App() {
   const [winners, setWinners] = useState([]); 
   const [history, setHistory] = useState([]);
   const [playerList, setPlayerList] = useState([]);
+  const [isTelegram, setIsTelegram] = useState(false);
   
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('munchkinDarkMode') === 'true';
   });
 
+  // Детектор Telegram та Dark Mode
   useEffect(() => {
+    const ua = window.navigator.userAgent;
+    if (ua.indexOf('Telegram') > -1) {
+      setIsTelegram(true);
+    }
     localStorage.setItem('munchkinDarkMode', darkMode);
     document.body.style.backgroundColor = darkMode ? '#1a1a1a' : '#f8f9fd';
   }, [darkMode]);
@@ -47,7 +53,6 @@ function App() {
         setTargetScore(data.targetScore || 10);
         setGameStatus(data.status || 'main');
         
-        // Змінив список дозволених екранів, додавши view-game
         if (data.status === 'active' && !['main', 'select-role', 'admin-auth', 'game', 'view-game'].includes(screen)) {
             setScreen('game');
         }
@@ -132,7 +137,7 @@ function App() {
         date: new Date().toLocaleString('uk-UA', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
         winner: winnersList.join(', '),
         participants: Object.values(lobbyPlayers).map(p => p.name).join(', '),
-        details: lobbyPlayers, // Зберігаємо детальну таблицю
+        details: lobbyPlayers,
         finalTarget: targetScore
       });
     }
@@ -148,14 +153,14 @@ function App() {
     }}>{text}</button>
   );
 
-  // --- ЕКРАН ПЕРЕГЛЯДУ ДЕТАЛЬНОЇ ГРИ (ОКО) ---
+  // --- Екран перегляду детальної гри (ОКО) ---
   if (screen === 'view-game' && selectedGame) {
     const players = Object.values(selectedGame.details || {});
     const maxR = players.reduce((m, p) => Math.max(m, p.levels ? Object.keys(p.levels).length - 1 : 0), 0);
     return (
       <div className="container" style={{padding: '10px', background: theme.bg, minHeight: '100vh', boxSizing: 'border-box'}}>
         <h2 style={{color: theme.text}}>📅 {selectedGame.date}</h2>
-        <h3 style={{color: theme.subText, fontSize: '14px', marginBottom: '15px'}}>Ціль була: {selectedGame.finalTarget || 10}</h3>
+        <h3 style={{color: theme.subText, fontSize: '14px', marginBottom: '15px'}}>Ціль: {selectedGame.finalTarget || 10}</h3>
         <div style={{overflowX: 'auto', background: theme.card, borderRadius: '12px'}}>
           <table className="game-table" style={{width: '100%', borderCollapse: 'collapse', minWidth: '350px'}}>
             <thead><tr style={{background: theme.tableHead, color: 'white'}}><th style={{padding: '10px'}}>Ім'я</th><th>LVL</th>{[...Array(maxR + 1)].map((_, i) => <th key={i}>К{i+1}</th>)}</tr></thead>
@@ -176,13 +181,20 @@ function App() {
             </tbody>
           </table>
         </div>
-        <CustomBackButton onClick={() => setScreen('main')} text="Закрити перегляд" />
+        <CustomBackButton onClick={() => setScreen('main')} text="Закрити" />
       </div>
     );
   }
 
   if (screen === 'main') return (
     <div className="container" style={{background: theme.bg, minHeight: '100vh', padding: '20px 15px', transition: '0.3s'}}>
+      {/* ПОВІДОМЛЕННЯ ДЛЯ TELEGRAM */}
+      {isTelegram && (
+        <div style={{background: '#ff7675', color: 'white', padding: '10px', borderRadius: '12px', marginBottom: '15px', fontSize: '12px', textAlign: 'center', fontWeight: 'bold'}}>
+          ⚠️ Ти в браузері Telegram. Натисни "..." та "Відкрити в Chrome/Safari" для кращої роботи!
+        </div>
+      )}
+
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'}}>
         <h1 style={{fontSize: '26px', color: theme.text, fontWeight: '800', margin: 0}}>🏆 Munchkin Stats</h1>
         <button onClick={() => setDarkMode(!darkMode)} style={{background: theme.card, border: `1px solid ${theme.border}`, borderRadius: '50%', width: '40px', height: '40px', fontSize: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
@@ -190,6 +202,7 @@ function App() {
         </button>
       </div>
       
+      {/* Подіум */}
       <div className="podium-container" style={{display: 'grid', gridTemplateColumns: '1fr 1.1fr 1fr', gap: '8px', marginBottom: '25px', background: 'transparent'}}>
         <div className="podium-item" style={{background: theme.card, borderRadius: '16px', padding: '12px 5px', border: `1px solid ${theme.border}`, boxSizing: 'border-box'}}>
           <div style={{fontSize: '10px', color: theme.subText, fontWeight: 'bold'}}>🎮 МАТЧІ</div>
@@ -230,6 +243,7 @@ function App() {
         </table>
       </div>
 
+      {/* Історія */}
       <div style={{marginTop: '30px'}}>
         <h3 style={{textAlign: 'left', marginLeft: '5px', marginBottom: '10px', fontSize: '16px', color: theme.text}}>📜 Остання активність</h3>
         <div style={{background: theme.card, borderRadius: '20px', padding: '5px', border: `1px solid ${theme.border}`}}>
@@ -245,7 +259,6 @@ function App() {
                   <div style={{fontSize: '11px', color: theme.subText, marginTop: '2px'}}>{g.participants}</div>
                 </div>
                 <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-                  {/* Кнопка ОКА (тільки якщо є деталі) */}
                   {!g.isArchive && g.details && (
                     <div onClick={() => { setSelectedGame(g); setScreen('view-game'); }} style={{cursor: 'pointer', fontSize: '18px', opacity: 0.6}}>👁️</div>
                   )}
@@ -261,7 +274,7 @@ function App() {
         <button className="start-btn" onClick={() => setScreen('game')} style={{
           marginTop: '25px', width: '100%', padding: '16px', borderRadius: '16px', 
           background: '#fdcb6e', color: '#2d3436', fontSize: '16px', fontWeight: 'bold', border: 'none'
-        }}>👁️ Приєднатися як глядач</button>
+        }}>👁️ Приєднатися</button>
       ) : (
         <button className="start-btn" onClick={() => setScreen('select-role')} style={{
           marginTop: '25px', width: '100%', padding: '16px', borderRadius: '16px', 
@@ -276,7 +289,7 @@ function App() {
       <h2 style={{color: theme.text}}>Хто грає?</h2>
       {gameStatus === 'active' ? (
         <div style={{background: '#ff7675', color: 'white', padding: '15px', borderRadius: '12px', textAlign: 'center', marginBottom: '15px'}}>
-          Гра вже триває! Ви можете спостерігати за нею з головного екрану.
+          Гра вже триває!
         </div>
       ) : (
         <>
@@ -289,7 +302,7 @@ function App() {
             <button onClick={addNewPlayer} style={{
               width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '12px',
               background: '#00cec9', color: 'white', border: 'none', fontWeight: 'bold', cursor: 'pointer'
-            }}>➕ Додати нового гравця</button>
+            }}>➕ Додати гравця</button>
           )}
 
           <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
@@ -302,7 +315,7 @@ function App() {
           </div>
         </>
       )}
-      <CustomBackButton onClick={() => setScreen('main')} text="Назад до головної" />
+      <CustomBackButton onClick={() => setScreen('main')} text="Назад" />
     </div>
   );
 
@@ -319,7 +332,7 @@ function App() {
                   <button className="start-btn" onClick={() => finalReset(winners)}>Зберегти 🏆</button>
                   <button className="finish-btn" onClick={() => setWinners([])} style={{background: '#fab1a0', color: '#2d3436'}}>Назад</button>
                 </div>
-              ) : <button className="start-btn" onClick={() => setWinners([])}>Зрозуміло 👍</button>}
+              ) : <button className="start-btn" onClick={() => setWinners([])}>ОК 👍</button>}
           </div></div>
         )}
         <h2 style={{color: theme.text}}>🎯 Ціль: {targetScore}</h2>
@@ -385,7 +398,7 @@ function App() {
         ))}
       </div>
       {isAdmin && <button className="start-btn" onClick={() => update(ref(db, 'current_game'), { status: 'active' })} style={{width: '100%', padding: '15px', borderRadius: '12px', background: '#fdcb6e', color: '#2d3436', fontWeight: 'bold', border: 'none'}}>🚀 Почати гру</button>}
-      <CustomBackButton onClick={() => setScreen('select-role')} text="Назад до вибору" />
+      <CustomBackButton onClick={() => setScreen('select-role')} text="Назад" />
     </div>
   );
 
