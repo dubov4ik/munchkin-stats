@@ -71,6 +71,19 @@ function App() {
     backBtn: darkMode ? '#444' : '#e1e4e8'
   };
 
+  const getHighlightStyle = (lvl) => {
+    if (lvl === 8) return { color: '#f1c40f', textShadow: '0 0 8px rgba(241, 196, 15, 0.5)' };
+    if (lvl === 9) return { color: '#e67e22', textShadow: '0 0 12px rgba(230, 126, 34, 0.7)', fontWeight: '900' };
+    if (lvl === 10) return { color: '#e74c3c', textShadow: '0 0 15px rgba(231, 76, 60, 0.9)', fontWeight: '900' };
+    if (lvl >= 11) return { 
+      color: '#ff4757', 
+      textShadow: '0 0 20px #ff4757', 
+      animation: 'pulse 1.5s infinite',
+      fontWeight: '900'
+    };
+    return { color: theme.text };
+  };
+
   const addNewPlayer = () => {
     const newName = prompt("Введіть ім'я нового гравця:");
     if (newName && newName.trim() !== "") {
@@ -266,10 +279,11 @@ function App() {
             <tbody>
               {players.map((p, idx) => {
                 const total = Object.values(p.levels || {}).reduce((a, b) => a + b, 1);
+                const highlight = getHighlightStyle(total);
                 return (
-                  <tr key={p.name} style={{borderBottom: `1px solid ${theme.border}`, background: idx % 2 === 0 ? theme.card : (darkMode ? '#333' : '#f9f9f9')}}>
-                    <td style={{padding: '12px', fontWeight: 'bold', fontSize: '20px', color: theme.text}}>{p.name}</td>
-                    <td style={{padding: '12px', textAlign: 'center', fontSize: '30px', fontWeight: '900', color: theme.text}}>{total}</td>
+                  <tr key={p.name} style={{borderBottom: `1px solid ${theme.border}`, background: idx % 2 === 0 ? theme.card : (darkMode ? '#333' : '#f9f9f9'), transition: '0.3s'}}>
+                    <td style={{padding: '12px', fontWeight: 'bold', fontSize: '20px', ...highlight}}>{p.name}</td>
+                    <td style={{padding: '12px', textAlign: 'center', fontSize: '30px', fontWeight: '900', ...highlight}}>{total}</td>
                     {[...Array(maxR + 1)].map((_, i) => {
                       const val = parseInt(p.levels?.[i] || 0);
                       return (
